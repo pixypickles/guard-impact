@@ -83,56 +83,59 @@ function drawFighter(a,enemy=false){
  x.fillStyle=enemy?"#665033":"#2d3639";x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.fill();x.fillRect(-24,-203,48,10);
  x.strokeStyle="#a82f25";x.lineWidth=7;x.beginPath();x.moveTo(0,-224);x.lineTo(-7,-250);x.stroke();
  // sword arm
- // 肩を支点にする。小攻撃の中段は突き、大攻撃の中段は肩から円弧を描く横薙ぎ。
+ // 攻撃ごとに動きを分離。
+ // 上段・大: v6で大きく見えた肩支点の振りかぶり→振り下ろし。
+ // 中段・大: 腕を高く上げず、肘を低めに保って手首を返す斬り上げ。
  let atk=a.atk;
  const shoulderX=30, shoulderY=-150;
- let handX=shoulderX+34, handY=shoulderY+8, bladeAng=.20;
+ let handX=shoulderX+34, handY=shoulderY+10, bladeAng=.18;
 
  if(atk){
    let impact=atk.special?.58:atk.type==="small"?.28:.42;
    let k=Math.min(1,atk.t/impact);
    let swing=1-Math.pow(1-k,2);
 
-   if(atk.height==="high"){
-     // 上段: 肩を支点に頭上へ振りかぶって振り下ろす
-     let armAng=-1.35 + swing*1.55;
-     let armLen=46;
+   if(atk.height==="high" && atk.type!=="small"){
+     // 上段・大 / 上段必殺:
+     // v6型の大きなオーバーヘッド。肩を支点に頭上から大きく振り下ろす。
+     let armAng=-1.55 + swing*1.82;
+     let armLen=54;
+     handX=shoulderX+Math.cos(armAng)*armLen;
+     handY=shoulderY+Math.sin(armAng)*armLen;
+     bladeAng=armAng;
+   }else if(atk.height==="high"){
+     // 上段・小: 大攻撃よりコンパクトな振り下ろし
+     let armAng=-1.05 + swing*1.18;
+     let armLen=45;
      handX=shoulderX+Math.cos(armAng)*armLen;
      handY=shoulderY+Math.sin(armAng)*armLen;
      bladeAng=armAng;
    }else if(atk.type==="small"){
-     // 中段・小: 肩から腕を伸ばす素早い突き
+     // 中段・小: 肩から素早い突き
      let ext=30+swing*34;
      handX=shoulderX+ext;
      handY=shoulderY+18;
      bladeAng=0;
    }else{
-     // 中段・大 / 必殺 = 下から斬り上げ。
-     // 腰の下へ剣を引き、肩を支点に前上方へ一気に振り抜く。
-     // 上段の「上→下」と明確に逆方向のシルエットにする。
-     const p=swing;
-     const armLen=52;
-     // 始動は剣先が低い位置。インパクトで斜め上へ抜ける。
-     const startAng=.92;     // 右下方向
-     const endAng=-.48;      // 右上方向
-     const armAng=startAng+(endAng-startAng)*p;
-     handX=shoulderX+Math.cos(armAng)*armLen;
-     handY=shoulderY+Math.sin(armAng)*armLen;
-     bladeAng=armAng;
+     // 中段・大 / 中段必殺:
+     // 肘・手の高さはほぼ腰〜胸下で固定。
+     // 腕全体を頭上まで振らず、手首だけを大きく返して刃を下→斜め上へ走らせる。
+     let wrist=1-Math.pow(1-swing,2);
+     handX=shoulderX+38+wrist*12;
+     handY=shoulderY+38-wrist*8;  // 上昇量は小さく抑える
+     bladeAng=.72-wrist*1.08;     // 手首で刃だけを返す
    }
  }
 
- // upper arm: always connects torso shoulder to the hand
+ // 肩から手まで腕を常につなぐ
  x.strokeStyle="#b98b64";x.lineWidth=12;x.lineCap="round";
  x.beginPath();x.moveTo(shoulderX,shoulderY);x.lineTo(handX,handY);x.stroke();
 
- // hand + sword
+ // 手首・鍔・剣
  x.save();x.translate(handX,handY);x.rotate(bladeAng);
- let bladeLen=78;
- // 中段・大は下から斬り上げるため、刀身の長さは常に一定。
  x.strokeStyle="#b98b64";x.lineWidth=11;x.beginPath();x.moveTo(-8,0);x.lineTo(10,0);x.stroke();
  x.strokeStyle="#8d6b39";x.lineWidth=10;x.beginPath();x.moveTo(10,-10);x.lineTo(10,10);x.stroke();
- x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();x.moveTo(14,0);x.lineTo(14+bladeLen,0);x.stroke();
+ x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();x.moveTo(14,0);x.lineTo(92,0);x.stroke();
  x.restore();
  x.lineCap="butt";
  // shield
