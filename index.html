@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>盾閃 - Junsen</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#17140f;color:#f5e6c8;font-family:system-ui,"Noto Sans JP",sans-serif;touch-action:none}
+#game{display:block;width:100vw;height:100vh;background:linear-gradient(#8e7a55 0 58%,#5b4931 58%)}
+.hud{position:fixed;inset:0;pointer-events:none}
+.top{display:flex;justify-content:space-between;gap:20px;padding:12px}
+.card{width:44%;text-shadow:0 2px 2px #000}
+.name{font-weight:900;letter-spacing:.08em}
+.bar{height:14px;border:2px solid #e8d6ad;background:#241c14;margin-top:4px}
+.fill{height:100%;background:#b23b2d;width:100%}
+.meter{height:9px;border:1px solid #e8d6ad;background:#241c14;margin-top:5px}
+.meter>div{height:100%;background:#d8a62d;width:0}
+#msg{position:fixed;top:22%;left:0;right:0;text-align:center;font-size:clamp(24px,6vw,54px);font-weight:1000;text-shadow:0 4px 8px #000;pointer-events:none}
+.controls{position:fixed;left:0;right:0;bottom:12px;display:flex;justify-content:space-between;align-items:end;padding:0 14px;gap:12px}
+.cluster{display:grid;grid-template-columns:repeat(2,70px);gap:8px}
+button{width:70px;height:70px;border-radius:50%;border:2px solid #e9d7ae;background:#32281dcc;color:#fff;font-size:15px;font-weight:900;box-shadow:0 3px 0 #0c0907;touch-action:none}
+button:active,.pressed{transform:translateY(2px);background:#7a3328}
+.attack{grid-template-columns:repeat(2,78px)}
+.attack button{width:78px;height:78px}
+#guard{background:#31536dcc}
+#heavy{background:#74362ecc}
+.smallnote{position:fixed;bottom:103px;left:0;right:0;text-align:center;font-size:12px;opacity:.9;pointer-events:none}
+@media(min-width:800px){button{width:82px;height:82px}.cluster{grid-template-columns:repeat(2,82px)}.attack{grid-template-columns:repeat(2,90px)}.attack button{width:90px;height:90px}}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div class="hud">
+  <div class="top">
+    <div class="card"><div class="name">PLAYER</div><div class="bar"><div id="php" class="fill"></div></div><div class="meter"><div id="pm"></div></div></div>
+    <div class="card" style="text-align:right"><div class="name">黄巾武将 CPU</div><div class="bar"><div id="ehp" class="fill" style="margin-left:auto"></div></div><div class="meter"><div id="em" style="margin-left:auto"></div></div></div>
+  </div>
+</div>
+<div id="msg">盾閃</div>
+<div class="smallnote">↑/↓で盾の高さ変更　←← / →→でステップ　攻撃長押し→離す：ゲージ満タン時 必殺</div>
+<div class="controls">
+ <div class="cluster">
+  <button data-act="left">←</button><button data-act="right">→</button>
+  <button data-act="up">上盾</button><button data-act="down">中盾</button>
+ </div>
+ <div class="cluster attack">
+  <button id="guard" data-act="guard">ガード</button><button data-act="small">小攻撃</button>
+  <span></span><button id="heavy" data-act="heavy">大攻撃</button>
+ </div>
+</div>
+<script src="game.js"></script>
+</body></html>
