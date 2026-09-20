@@ -107,16 +107,22 @@ function drawFighter(a,enemy=false){
      handY=shoulderY+18;
      bladeAng=0;
    }else{
-     // 中段・大 / 必殺: 身体の奥側から水平に横払い
+     // 中段・大 / 必殺: 奥→正面へ伸ばす→手前側まで振り抜く
      const p=swing;
      handY=shoulderY+34;
-     bladeAng=0;
-     if(p<.40){
-       const q=p/.40;
-       handX=shoulderX+27-15*q; // 肘を畳んで奥側へ引く
+     if(p<.34){
+       const q=p/.34;
+       handX=shoulderX+27-15*q;
+       bladeAng=0;
+     }else if(p<.70){
+       const q=(p-.34)/.36;
+       handX=shoulderX+12+58*(1-Math.pow(1-q,2));
+       bladeAng=0;
      }else{
-       const q=(p-.40)/.60;
-       handX=shoulderX+12+58*(1-Math.pow(1-q,2)); // 奥→手前→前へ払う
+       const q=(p-.70)/.30;
+       handX=shoulderX+70-25*q;
+       handY=shoulderY+34+10*q;
+       bladeAng=.05+.78*q;
      }
    }
  }
@@ -131,12 +137,15 @@ function drawFighter(a,enemy=false){
  if(atk && atk.height==="mid" && atk.type!=="small"){
    let impact=atk.special?.58:.42;
    let p=Math.min(1,atk.t/impact);
-   if(p<.40){
-     let q=p/.40;
-     bladeLen=76-58*q; // 奥を向くほど短く見える
+   if(p<.34){
+     let q=p/.34;
+     bladeLen=76-58*q;
+   }else if(p<.70){
+     let q=(p-.34)/.36;
+     bladeLen=18+74*Math.sin(Math.min(1,q)*Math.PI/2);
    }else{
-     let q=(p-.40)/.60;
-     bladeLen=18+74*Math.sin(Math.min(1,q)*Math.PI/2); // 横へ回るにつれ全長が見える
+     let q=(p-.70)/.30;
+     bladeLen=92-18*q;
    }
  }
  x.strokeStyle="#b98b64";x.lineWidth=11;x.beginPath();x.moveTo(-8,0);x.lineTo(10,0);x.stroke();
