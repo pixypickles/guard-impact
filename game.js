@@ -83,30 +83,53 @@ function drawFighter(a,enemy=false){
  x.fillStyle=enemy?"#665033":"#2d3639";x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.fill();x.fillRect(-24,-203,48,10);
  x.strokeStyle="#a82f25";x.lineWidth=7;x.beginPath();x.moveTo(0,-224);x.lineTo(-7,-250);x.stroke();
  // sword arm
- // 上段: 頭上から振り下ろす。
- // 中段: 画面上の高さを固定したまま、腕と剣を左右へ平行移動させる横薙ぎ。
- let atk=a.atk, ang=.08, swordY=-137, handX=32;
+ // 肩を支点にする。小攻撃の中段は突き、大攻撃の中段は肩から円弧を描く横薙ぎ。
+ let atk=a.atk;
+ const shoulderX=30, shoulderY=-150;
+ let handX=shoulderX+34, handY=shoulderY+8, bladeAng=.20;
+
  if(atk){
    let impact=atk.special?.58:atk.type==="small"?.28:.42;
    let k=Math.min(1,atk.t/impact);
    let swing=1-Math.pow(1-k,2);
+
    if(atk.height==="high"){
-     ang=-1.45 + swing*1.65;
-     swordY=-154;
-     handX=32;
+     // 上段: 肩を支点に頭上へ振りかぶって振り下ろす
+     let armAng=-1.35 + swing*1.55;
+     let armLen=46;
+     handX=shoulderX+Math.cos(armAng)*armLen;
+     handY=shoulderY+Math.sin(armAng)*armLen;
+     bladeAng=armAng;
+   }else if(atk.type==="small"){
+     // 中段・小: 肩から腕を伸ばす素早い突き
+     let ext=30+swing*34;
+     handX=shoulderX+ext;
+     handY=shoulderY+18;
+     bladeAng=0;
    }else{
-     // 横薙ぎはY座標と剣角度を固定。
-     // 振り始めは体側へ引き、攻撃中に前方へ水平に振り抜く。
-     swordY=-132;
-     ang=0;
-     handX=-6 + swing*72;
+     // 中段・大 / 必殺:
+     // 肩を中心に腕全体を回し、剣先が円弧を描く横薙ぎ。
+     // 横から見た2D表現なので、前半は腕を引き、そこから前へ大きく振り抜く。
+     let armAng=-2.55 + swing*2.65;
+     let armLen=50;
+     handX=shoulderX+Math.cos(armAng)*armLen;
+     handY=shoulderY+Math.sin(armAng)*armLen;
+     // 剣は前腕の延長線上。突きのような平行移動にはしない。
+     bladeAng=armAng;
    }
  }
- x.save();x.translate(handX,swordY);x.rotate(ang);
- x.strokeStyle="#b98b64";x.lineWidth=12;x.beginPath();x.moveTo(-20,0);x.lineTo(34,0);x.stroke();
- x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();x.moveTo(30,0);x.lineTo(105,0);x.stroke();
- x.strokeStyle="#8d6b39";x.lineWidth=10;x.beginPath();x.moveTo(27,-10);x.lineTo(27,10);x.stroke();
+
+ // upper arm: always connects torso shoulder to the hand
+ x.strokeStyle="#b98b64";x.lineWidth=12;x.lineCap="round";
+ x.beginPath();x.moveTo(shoulderX,shoulderY);x.lineTo(handX,handY);x.stroke();
+
+ // hand + sword
+ x.save();x.translate(handX,handY);x.rotate(bladeAng);
+ x.strokeStyle="#b98b64";x.lineWidth=11;x.beginPath();x.moveTo(-8,0);x.lineTo(10,0);x.stroke();
+ x.strokeStyle="#8d6b39";x.lineWidth=10;x.beginPath();x.moveTo(10,-10);x.lineTo(10,10);x.stroke();
+ x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();x.moveTo(14,0);x.lineTo(92,0);x.stroke();
  x.restore();
+ x.lineCap="butt";
  // shield
  let sy=a.guard==="high"?-182:-126;x.fillStyle=enemy?"#7a5734":"#7a3028";x.strokeStyle="#d0a55d";x.lineWidth=5;x.beginPath();x.ellipse(-32,sy,31,43,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(-32,sy,8,0,Math.PI*2);x.fillStyle="#d0a55d";x.fill();
  x.restore();
