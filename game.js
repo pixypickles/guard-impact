@@ -1,7 +1,10 @@
+document.addEventListener("contextmenu",e=>e.preventDefault(),{passive:false});
+document.addEventListener("selectstart",e=>e.preventDefault(),{passive:false});
+document.addEventListener("dragstart",e=>e.preventDefault(),{passive:false});
 const c=document.querySelector("#game"),x=c.getContext("2d");
 const $=s=>document.querySelector(s); let W,H,last=0,msgT=1.5;
 function resize(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);W=innerWidth;H=innerHeight} addEventListener("resize",resize);resize();
-const P={x:.24,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0}, E={x:.76,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0};
+const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0};
 let over=false, hold={small:0,heavy:0}, taps={left:0,right:0};
 function say(t){$("#msg").textContent=t;msgT=1.1}
 function attack(a,type,charged=false){
@@ -32,7 +35,7 @@ function resolve(a,b){
  let q=a.atk;if(!q||q.hit)return;
  let impact=q.special?.58:q.type==="small"?.28:.42;
  if(q.t<impact)return;q.hit=true;
- let dist=Math.abs(a.x-b.x), range=q.special?.27:q.type==="small"?.18:.215;
+ let dist=Math.abs(a.x-b.x), range=q.special?.34:q.type==="small"?.25:.29;
  if(dist>range)return;
  let nowGuard=b.guard===q.height;
  let just=(b.just||0)>.0;
@@ -51,8 +54,8 @@ function ai(dt){
  cpu-=dt;if(cpu>0||over)return;cpu=.22+Math.random()*.5;
  let d=Math.abs(P.x-E.x);
  if(P.atk&&Math.random()<.68){E.guard=P.atk.height;if(P.atk.special&&Math.random()<.42)E.just=.11}
- else if(d>.34)step(E,-1);
- else if(d<.285)step(E,1); else if(Math.random()<.16)step(E,Math.random()<.5?-1:1);
+ else if(d>.43)step(E,-1);
+ else if(d<.36)step(E,1); else if(Math.random()<.16)step(E,Math.random()<.5?-1:1);
  else {let charged=E.m>=100&&Math.random()<.38;E.aim=Math.random()<.5?"high":"mid";attack(E,Math.random()<.58?"small":"heavy",charged)}
 }
 function update(a,dt){
@@ -98,5 +101,5 @@ function loop(t){
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
 }
-function reset(){Object.assign(P,{x:.24,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0});Object.assign(E,{x:.76,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0});over=false;say("再戦！")}
+function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0});over=false;say("再戦！")}
 say("盾閃　開始");requestAnimationFrame(loop);
