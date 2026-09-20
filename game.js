@@ -48,6 +48,7 @@ function resolve(a,b){
      // ジャストガードは受け流し斬り。攻撃を弾き、そのまま即反撃。
      a.stun=.42;a.atk=null;a.step=-a.face*.012;
      b.flash=1;b.riposte=.28;
+     b.m=Math.min(100,b.m+24);
      a.hp-=q.type==="small"?9:14;
      say("受け流し斬り！");
      if(a.hp<=0){a.hp=0;over=true;say(b===P?"勝利！ TAPで再戦":"敗北… TAPで再戦")}
@@ -55,12 +56,14 @@ function resolve(a,b){
    }
    let chip=q.type==="small"?.5:1;
    b.hp-=chip;b.flash=.35;
+   b.m=Math.min(100,b.m+(q.type==="small"?10:17));
    say("刀受け -"+chip);
  }else if(q.special){
    // ガード不能は刀の自動受けも貫通。ジャストだけ防げる。
    if(just){
      if(b.weapon==="katana"){
        a.stun=.60;a.atk=null;a.step=-a.face*.018;b.riposte=.32;
+       b.m=Math.min(100,b.m+30);
        a.hp-=16;b.flash=1;say("受け流し斬り！");
      }else{
        b.m=Math.min(100,b.m+30);a.stun=.65;a.atk=null;a.step=-a.face*.018;b.flash=1;say("JUST GUARD! よろけ！");
@@ -122,7 +125,9 @@ function drawKatana(a,enemy,px,ground,s){
  // shadow
  x.fillStyle="#21181088";x.beginPath();x.ellipse(0,10,55,12,0,0,Math.PI*2);x.fill();
  // legs / lighter armor
- x.fillStyle="#342f2d";x.fillRect(-22-heavyPose*8,-64+heavyPose*5,14,66-heavyPose*5);x.fillRect(9+heavyPose*15,-64+heavyPose*5,14,66-heavyPose*5);
+ x.fillStyle="#342f2d";
+ x.fillRect(-30-heavyPose*8,-64+heavyPose*5,14,66-heavyPose*5);
+ x.fillRect(16+heavyPose*15,-64+heavyPose*5,14,66-heavyPose*5);
  x.fillStyle="#72502e";for(let i=-2;i<=2;i++)x.fillRect(i*12-5,-104,10,46);
  x.fillStyle="#514536";x.beginPath();x.moveTo(-34,-168);x.lineTo(33,-168);x.lineTo(28,-98);x.lineTo(-28,-98);x.closePath();x.fill();
  x.strokeStyle="#b99350";x.lineWidth=4;for(let yy=-156;yy<-108;yy+=14){x.beginPath();x.moveTo(-28,yy);x.lineTo(27,yy);x.stroke()}
@@ -194,7 +199,8 @@ function drawFighter(a,enemy=false){
    x.fillRect(-22-spread*.55,-65+shorten,15,67-shorten);
    x.fillRect(8+spread,-65+shorten,15,67-shorten);
  }else{
-   x.fillRect(-22,-65,15,67);x.fillRect(8,-65,15,67);
+   // 通常立ちも少し足を広げる
+   x.fillRect(-29,-65,15,67);x.fillRect(15,-65,15,67);
  }
  // lamellar skirt
  x.fillStyle=enemy?"#8a6233":"#6f2e27";for(let i=-2;i<=2;i++)x.fillRect(i*13-6,-105,11,48);
