@@ -108,25 +108,19 @@ function drawFighter(a,enemy=false){
      bladeAng=0;
    }else{
      // 中段・大 / 必殺:
-     // 構えでは鍔より刀身が左側。そこから前方へ横払いし、
-     // 最後も身体を通り越して刀身が左側へ抜ける。
+     // 横回転は画面XY上で回さない。Y座標を胸下の高さに完全固定し、
+     // 「左向き→手前→右向き→手前→左向き」を刀身の横方向と長さで表現する。
      const p=swing;
-     handY=shoulderY+34;
+     handY=shoulderY+26; // 足元へ絶対に落ちない中段の高さ
+     bladeAng=0;         // 刀身は常に画面上で水平
      if(p<.26){
-       // テイクバック: 手は身体の横、刀身は完全に左向き
-       const q=p/.26;
-       handX=shoulderX+28-10*q;
-       bladeAng=Math.PI;
+       handX=shoulderX+20;
      }else if(p<.70){
-       // 横払い: 左向きの刀身を手前経由で右へ回す
        const q=(p-.26)/.44;
-       handX=shoulderX+18+54*(1-Math.pow(1-q,2));
-       bladeAng=Math.PI*(1-q);
+       handX=shoulderX+20+50*(1-Math.pow(1-q,2));
      }else{
-       // フォロースルー: 高さを落とさず左側まで振り抜く
        const q=(p-.70)/.30;
-       handX=shoulderX+72-56*q;
-       bladeAng=Math.PI*q;
+       handX=shoulderX+70-52*q;
      }
    }
  }
@@ -138,24 +132,26 @@ function drawFighter(a,enemy=false){
  // hand + sword
  x.save();x.translate(handX,handY);x.rotate(bladeAng);
  let bladeLen=78;
+ let bladeDir=1;
  if(atk && atk.height==="mid" && atk.type!=="small"){
    let impact=atk.special?.58:.42;
    let p=Math.min(1,atk.t/impact);
-   // 開始と終了は刀身が左向きなので全長を見せる。
-   // 横払いの途中、画面手前を向く瞬間だけ短くして奥行きを表現する。
-   if(p<.26){
-     bladeLen=88;
-   }else if(p<.70){
-     let q=(p-.26)/.44;
-     bladeLen=22+66*Math.abs(Math.cos(q*Math.PI));
-   }else{
-     let q=(p-.70)/.30;
-     bladeLen=22+66*q;
-   }
+   // 擬似的な水平回転。cosの符号が刃の左右、絶対値が見かけの長さ。
+   // 0:左、0.5:右、1:左。途中の手前向きだけ短くなる。
+   let yaw;
+   if(p<.26) yaw=Math.PI;
+   else if(p<.70) yaw=Math.PI*(1-(p-.26)/.44);
+   else yaw=Math.PI*((p-.70)/.30);
+   let cs=Math.cos(yaw);
+   bladeDir=cs>=0?1:-1;
+   bladeLen=18+74*Math.abs(cs);
  }
  x.strokeStyle="#b98b64";x.lineWidth=11;x.beginPath();x.moveTo(-8,0);x.lineTo(10,0);x.stroke();
  x.strokeStyle="#8d6b39";x.lineWidth=10;x.beginPath();x.moveTo(10,-10);x.lineTo(10,10);x.stroke();
- x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();x.moveTo(14,0);x.lineTo(14+bladeLen,0);x.stroke();
+ x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();
+ if(bladeDir>0){x.moveTo(14,0);x.lineTo(14+bladeLen,0);}
+ else{x.moveTo(-14,0);x.lineTo(-14-bladeLen,0);}
+ x.stroke();
  x.restore();
  x.lineCap="butt";
  // shield
