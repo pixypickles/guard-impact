@@ -127,10 +127,10 @@ function drawKatana(a,enemy,px,ground,s){
  // legs / lighter armor
  // 刀兵の脚：腰から自然に出し、膝を曲げて前後に開く。
  x.strokeStyle="#342f2d";x.lineCap="round";
- let kh=heavyPose*7, ks=heavyPose*10;
+ let kh=heavyPose*9, ks=heavyPose*13;
  x.lineWidth=14;
- x.beginPath();x.moveTo(-12,-64+kh);x.lineTo(-23-ks*.35,-36+kh);x.lineTo(-31-ks*.55,-2);x.stroke();
- x.beginPath();x.moveTo(12,-64+kh);x.lineTo(26+ks,-36+kh);x.lineTo(35+ks*1.4,-2);x.stroke();
+ x.beginPath();x.moveTo(-12,-64+kh);x.lineTo(-23-ks*.45,-36+kh);x.lineTo(-31-ks*.65,-2);x.stroke();
+ x.beginPath();x.moveTo(12,-64+kh);x.lineTo(26+ks,-36+kh);x.lineTo(35+ks*1.55,-2);x.stroke();
  x.lineWidth=11;
  x.beginPath();x.moveTo(-31-ks*.55,-2);x.lineTo(-43-ks*.6,2);x.stroke();
  x.beginPath();x.moveTo(35+ks*1.4,-2);x.lineTo(48+ks*1.5,2);x.stroke();
@@ -199,27 +199,22 @@ function drawFighter(a,enemy=false){
  // shadow
  x.fillStyle="#21181088";x.beginPath();x.ellipse(0,10,58,13,0,0,Math.PI*2);x.fill();
  // legs / boots
- x.fillStyle=enemy?"#3e342b":"#2d3337";
- if(heavyPose>0){
-   // 足を左右方向に広げ、前脚を相手側へ出して踏ん張る
-   let spread=heavyPose*18, shorten=heavyPose*7;
-   x.fillRect(-22-spread*.55,-65+shorten,15,67-shorten);
-   x.fillRect(8+spread,-65+shorten,15,67-shorten);
- }else{
-   // 通常立ち：股関節は自然な位置のまま、膝を外へ向けて足を開く戦闘姿勢。
-   // 単に2本の脚を平行移動するのではなく、太腿→膝→足首を折って描く。
-   x.strokeStyle=enemy?"#3e342b":"#2d3337";
-   x.lineWidth=15;x.lineCap="round";
-   // 後ろ脚
-   x.beginPath();x.moveTo(-13,-64);x.lineTo(-23,-35);x.lineTo(-31,-2);x.stroke();
-   // 前脚
-   x.beginPath();x.moveTo(13,-64);x.lineTo(27,-36);x.lineTo(34,-2);x.stroke();
-   // 足先を外へ
-   x.lineWidth=12;
-   x.beginPath();x.moveTo(-31,-2);x.lineTo(-43,2);x.stroke();
-   x.beginPath();x.moveTo(34,-2);x.lineTo(47,2);x.stroke();
-   x.lineCap="butt";
- }
+ // 通常時も大攻撃時も同じ「関節のある脚」を使う。
+ // 大攻撃ではこの姿勢のまま膝を深く曲げ、前脚を相手側へさらに出す。
+ x.strokeStyle=enemy?"#3e342b":"#2d3337";
+ x.lineCap="round";
+ let legDrop=heavyPose*7;
+ let backKneeX=-23-heavyPose*5;
+ let backFootX=-31-heavyPose*7;
+ let frontKneeX=27+heavyPose*14;
+ let frontFootX=34+heavyPose*22;
+ x.lineWidth=15;
+ x.beginPath();x.moveTo(-13,-64+legDrop);x.lineTo(backKneeX,-35+legDrop);x.lineTo(backFootX,-2);x.stroke();
+ x.beginPath();x.moveTo(13,-64+legDrop);x.lineTo(frontKneeX,-36+legDrop);x.lineTo(frontFootX,-2);x.stroke();
+ x.lineWidth=12;
+ x.beginPath();x.moveTo(backFootX,-2);x.lineTo(backFootX-12,2);x.stroke();
+ x.beginPath();x.moveTo(frontFootX,-2);x.lineTo(frontFootX+13,2);x.stroke();
+ x.lineCap="butt";
  // lamellar skirt
  x.fillStyle=enemy?"#8a6233":"#6f2e27";for(let i=-2;i<=2;i++)x.fillRect(i*13-6,-105,11,48);
  // torso armor
