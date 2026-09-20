@@ -82,9 +82,24 @@ function drawFighter(a,enemy=false){
  x.fillStyle="#c79467";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#211810";x.beginPath();x.arc(10,-196,2.7,0,Math.PI*2);x.fill();
  x.fillStyle=enemy?"#665033":"#2d3639";x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.fill();x.fillRect(-24,-203,48,10);
  x.strokeStyle="#a82f25";x.lineWidth=7;x.beginPath();x.moveTo(0,-224);x.lineTo(-7,-250);x.stroke();
- // sword arm
- let atk=a.atk, ang=atk?(atk.height==="high"?-1.0:.05):.35;if(atk){let k=Math.min(1,atk.t/(atk.special?.58:atk.type==="small"?.28:.42));ang+=(1-k)*-1.1}
- x.save();x.translate(32,-142);x.rotate(ang);x.strokeStyle="#b98b64";x.lineWidth=12;x.beginPath();x.moveTo(0,0);x.lineTo(34,0);x.stroke();x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();x.moveTo(30,0);x.lineTo(105,0);x.stroke();x.strokeStyle="#8d6b39";x.lineWidth=10;x.beginPath();x.moveTo(27,-10);x.lineTo(27,10);x.stroke();x.restore();
+ // sword arm: 上段は頭上から振り下ろし、中段は腰の高さを横薙ぎ
+ let atk=a.atk, ang=.35, swordY=-142;
+ if(atk){
+   let impact=atk.special?.58:atk.type==="small"?.28:.42;
+   let k=Math.min(1,atk.t/impact);
+   // ease-out makes the blade accelerate into the strike.
+   let swing=1-Math.pow(1-k,2);
+   if(atk.height==="high"){
+     // overhead: start high behind the head and chop downward
+     ang=-1.45 + swing*1.65;
+     swordY=-154;
+   }else{
+     // middle/low: start pulled back and sweep horizontally across the waist
+     ang=-.55 + swing*.78;
+     swordY=-112;
+   }
+ }
+ x.save();x.translate(32,swordY);x.rotate(ang);x.strokeStyle="#b98b64";x.lineWidth=12;x.beginPath();x.moveTo(0,0);x.lineTo(34,0);x.stroke();x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();x.moveTo(30,0);x.lineTo(105,0);x.stroke();x.strokeStyle="#8d6b39";x.lineWidth=10;x.beginPath();x.moveTo(27,-10);x.lineTo(27,10);x.stroke();x.restore();
  // shield
  let sy=a.guard==="high"?-182:-126;x.fillStyle=enemy?"#7a5734":"#7a3028";x.strokeStyle="#d0a55d";x.lineWidth=5;x.beginPath();x.ellipse(-32,sy,31,43,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(-32,sy,8,0,Math.PI*2);x.fillStyle="#d0a55d";x.fill();
  x.restore();
