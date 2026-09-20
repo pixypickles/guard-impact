@@ -11,7 +11,7 @@ function attack(a,type,charged=false){
  if(over||a.atk||(a.stun||0)>0)return;
  let special=charged&&a.m>=100;
  if(special)a.m=0;
- a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:a.weapon==="katana"?.90:1};
+ a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:a.weapon==="katana"?.85:1};
 }
 function releaseAttack(type){let d=performance.now()-(hold[type]||performance.now());hold[type]=0;attack(P,type,d>380)}
 function guardSet(a,g){a.guard=g}
@@ -48,12 +48,12 @@ function resolve(a,b){
      // ジャストガードは受け流し斬り。攻撃を弾き、そのまま即反撃。
      a.stun=.42;a.atk=null;a.step=-a.face*.012;
      b.flash=1;b.riposte=.28;
-     a.hp-=q.type==="small"?7:11;
+     a.hp-=q.type==="small"?9:14;
      say("受け流し斬り！");
      if(a.hp<=0){a.hp=0;over=true;say(b===P?"勝利！ TAPで再戦":"敗北… TAPで再戦")}
      return;
    }
-   let chip=q.type==="small"?2:4;
+   let chip=q.type==="small"?.5:1;
    b.hp-=chip;b.flash=.35;
    say("刀受け -"+chip);
  }else if(q.special){
@@ -61,7 +61,7 @@ function resolve(a,b){
    if(just){
      if(b.weapon==="katana"){
        a.stun=.60;a.atk=null;a.step=-a.face*.018;b.riposte=.32;
-       a.hp-=13;b.flash=1;say("受け流し斬り！");
+       a.hp-=16;b.flash=1;say("受け流し斬り！");
      }else{
        b.m=Math.min(100,b.m+30);a.stun=.65;a.atk=null;a.step=-a.face*.018;b.flash=1;say("JUST GUARD! よろけ！");
      }
@@ -128,7 +128,7 @@ function drawKatana(a,enemy,px,ground,s){
  x.strokeStyle="#b99350";x.lineWidth=4;for(let yy=-156;yy<-108;yy+=14){x.beginPath();x.moveTo(-28,yy);x.lineTo(27,yy);x.stroke()}
  // head/helmet + visible eye dot
  x.fillStyle="#c79467";x.beginPath();x.arc(0,-193,19,0,Math.PI*2);x.fill();
- x.fillStyle="#1d1713";x.beginPath();x.arc(10,-195,2.8,0,Math.PI*2);x.fill();
+ x.fillStyle="#1d1713";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
  x.fillStyle="#493c2e";x.beginPath();x.arc(0,-201,23,Math.PI,Math.PI*2);x.fill();x.fillRect(-23,-202,46,9);
  x.strokeStyle="#a82f25";x.lineWidth=6;x.beginPath();x.moveTo(0,-223);x.lineTo(6,-246);x.stroke();
 
@@ -204,7 +204,7 @@ function drawFighter(a,enemy=false){
  // shoulder plates
  x.fillStyle=enemy?"#6d593d":"#303a3e";x.fillRect(-53,-165,22,42);x.fillRect(31,-165,22,42);
  // head + helmet
- x.fillStyle="#c79467";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#211810";x.beginPath();x.arc(10,-196,3.2,0,Math.PI*2);x.fill();
+ x.fillStyle="#c79467";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#211810";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
  x.fillStyle=enemy?"#665033":"#2d3639";x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.fill();x.fillRect(-24,-203,48,10);
  x.strokeStyle="#a82f25";x.lineWidth=7;x.beginPath();x.moveTo(0,-224);x.lineTo(-7,-250);x.stroke();
  // sword arm
