@@ -1,22 +1,22 @@
 const c=document.querySelector("#game"),x=c.getContext("2d");
 const $=s=>document.querySelector(s); let W,H,last=0,msgT=1.5;
 function resize(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);W=innerWidth;H=innerHeight} addEventListener("resize",resize);resize();
-const P={x:.28,hp:100,m:0,guard:"mid",atk:null,face:1,step:0,flash:0}, E={x:.72,hp:100,m:0,guard:"mid",atk:null,face:-1,step:0,flash:0};
+const P={x:.24,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0}, E={x:.76,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0};
 let over=false, hold={small:0,heavy:0}, taps={left:0,right:0};
 function say(t){$("#msg").textContent=t;msgT=1.1}
 function attack(a,type,charged=false){
  if(over||a.atk)return;
  let special=charged&&a.m>=100;
  if(special)a.m=0;
- a.atk={t:0,type,special,hit:false,height:Math.random()<.5?"high":"mid"};
+ a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid"};
 }
 function releaseAttack(type){let d=performance.now()-(hold[type]||performance.now());hold[type]=0;attack(P,type,d>380)}
 function guardSet(a,g){a.guard=g}
 function step(a,dir){a.step=dir*.055}
 function input(act,down){
  if(over&&down){reset();return}
- if(act==="up"&&down)guardSet(P,"high");
- if(act==="down"&&down)guardSet(P,"mid");
+ if(act==="up"&&down){P.aim="high";guardSet(P,"high");P.just=.11}
+ if(act==="down"&&down){P.aim="mid";guardSet(P,"mid");P.just=.11}
  if((act==="left"||act==="right")&&down){let now=performance.now(); if(now-taps[act]<280)step(P,act==="left"?-1:1);taps[act]=now}
  if((act==="small"||act==="heavy")){if(down)hold[act]=performance.now();else releaseAttack(act)}
 }
@@ -32,7 +32,7 @@ function resolve(a,b){
  let q=a.atk;if(!q||q.hit)return;
  let impact=q.special?.58:q.type==="small"?.28:.42;
  if(q.t<impact)return;q.hit=true;
- let dist=Math.abs(a.x-b.x), range=q.special?.29:q.type==="small"?.20:.235;
+ let dist=Math.abs(a.x-b.x), range=q.special?.27:q.type==="small"?.18:.215;
  if(dist>range)return;
  let nowGuard=b.guard===q.height;
  let just=(b.just||0)>.0;
@@ -51,9 +51,9 @@ function ai(dt){
  cpu-=dt;if(cpu>0||over)return;cpu=.22+Math.random()*.5;
  let d=Math.abs(P.x-E.x);
  if(P.atk&&Math.random()<.68){E.guard=P.atk.height;if(P.atk.special&&Math.random()<.42)E.just=.11}
- else if(d>.22)step(E,-1);
- else if(Math.random()<.22)step(E,1);
- else {let charged=E.m>=100&&Math.random()<.38;attack(E,Math.random()<.58?"small":"heavy",charged)}
+ else if(d>.34)step(E,-1);
+ else if(d<.285)step(E,1); else if(Math.random()<.16)step(E,Math.random()<.5?-1:1);
+ else {let charged=E.m>=100&&Math.random()<.38;E.aim=Math.random()<.5?"high":"mid";attack(E,Math.random()<.58?"small":"heavy",charged)}
 }
 function update(a,dt){
  if(a.step){a.x+=a.step;a.step*=.72;if(Math.abs(a.step)<.002)a.step=0}
@@ -76,7 +76,7 @@ function drawFighter(a,enemy=false){
  // shoulder plates
  x.fillStyle=enemy?"#6d593d":"#303a3e";x.fillRect(-53,-165,22,42);x.fillRect(31,-165,22,42);
  // head + helmet
- x.fillStyle="#c79467";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();
+ x.fillStyle="#c79467";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#211810";x.beginPath();x.arc(10,-196,2.7,0,Math.PI*2);x.fill();
  x.fillStyle=enemy?"#665033":"#2d3639";x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.fill();x.fillRect(-24,-203,48,10);
  x.strokeStyle="#a82f25";x.lineWidth=7;x.beginPath();x.moveTo(0,-224);x.lineTo(-7,-250);x.stroke();
  // sword arm
@@ -98,5 +98,5 @@ function loop(t){
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
 }
-function reset(){Object.assign(P,{x:.28,hp:100,m:0,guard:"mid",atk:null,step:0});Object.assign(E,{x:.72,hp:100,m:0,guard:"mid",atk:null,step:0});over=false;say("再戦！")}
+function reset(){Object.assign(P,{x:.24,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0});Object.assign(E,{x:.76,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0});over=false;say("再戦！")}
 say("盾閃　開始");requestAnimationFrame(loop);
