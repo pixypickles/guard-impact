@@ -119,10 +119,12 @@ function drawFighter(a,enemy=false){
        handX=shoulderX+12+58*(1-Math.pow(1-q,2));
        bladeAng=0;
      }else{
+       // フォロースルー: 下へ落とさない。
+       // 伸び切った剣を画面手前へ回し込み、そのまま攻撃者の左側へ抜く。
        const q=(p-.70)/.30;
-       handX=shoulderX+70-25*q;
-       handY=shoulderY+34+10*q;
-       bladeAng=.05+.78*q;
+       handX=shoulderX+70-72*q;
+       handY=shoulderY+34;       // 高さ固定
+       bladeAng=.02-.18*q;       // ほぼ水平を維持
      }
    }
  }
@@ -145,7 +147,9 @@ function drawFighter(a,enemy=false){
      bladeLen=18+74*Math.sin(Math.min(1,q)*Math.PI/2);
    }else{
      let q=(p-.70)/.30;
-     bladeLen=92-18*q;
+     // 画面手前を向くにつれて短く見える。
+     // 手自体は左へ抜けるので「下方向」ではなく手前→左のフォロースルーになる。
+     bladeLen=92-68*Math.sin(q*Math.PI/2);
    }
  }
  x.strokeStyle="#b98b64";x.lineWidth=11;x.beginPath();x.moveTo(-8,0);x.lineTo(10,0);x.stroke();
@@ -158,7 +162,19 @@ function drawFighter(a,enemy=false){
  x.restore();
 }
 function loop(t){
- let dt=Math.min(.033,(t-last)/1000||0);last=t;update(P,dt);update(E,dt);ai(dt);resolve(P,E);resolve(E,P);
+ let dt=Math.min(.033,(t-last)/1000||0);last=t;
+ update(P,dt);update(E,dt);
+ // キャラ同士の当たり判定。プレイヤーは常に左、CPUは常に右。
+ // 接触したら互いを押し戻し、すれ違い・位置の入れ替わりを禁止する。
+ const minGap=.20;
+ if(E.x-P.x<minGap){
+   const mid=(P.x+E.x)/2;
+   P.x=mid-minGap/2;
+   E.x=mid+minGap/2;
+   P.step=Math.min(0,P.step);
+   E.step=Math.max(0,E.step);
+ }
+ ai(dt);resolve(P,E);resolve(E,P);
  if(msgT>0){msgT-=dt;if(msgT<=0&&!over)$("#msg").textContent=""}
  x.clearRect(0,0,W,H);
  let g=x.createLinearGradient(0,0,0,H*.62);g.addColorStop(0,"#8e7650");g.addColorStop(1,"#c3a36b");x.fillStyle=g;x.fillRect(0,0,W,H*.62);
