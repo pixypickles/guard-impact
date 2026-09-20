@@ -107,15 +107,22 @@ function drawFighter(a,enemy=false){
      handY=shoulderY+18;
      bladeAng=0;
    }else{
-     // 中段・大 / 必殺:
-     // 肩を中心に腕全体を回し、剣先が円弧を描く横薙ぎ。
-     // 横から見た2D表現なので、前半は腕を引き、そこから前へ大きく振り抜く。
-     let armAng=-2.55 + swing*2.65;
-     let armLen=50;
-     handX=shoulderX+Math.cos(armAng)*armLen;
-     handY=shoulderY+Math.sin(armAng)*armLen;
-     // 剣は前腕の延長線上。突きのような平行移動にはしない。
-     bladeAng=armAng;
+     // 中段・大 / 必殺 = 水平の横薙ぎ。
+     // 重要: 画面XY平面で剣を回転させると「振り下ろし」に見える。
+     // そのため剣の高さ(Y)と角度を水平に固定し、
+     // 奥→手前→前へ回る動きを「見かけの長さ」とX移動で表現する。
+     const p=swing;
+     handY=shoulderY+24;     // 攻撃中ずっと同じ高さ
+     bladeAng=0;             // 刃もずっと水平
+     if(p<.35){
+       // テイクバック: 肘を曲げ、剣を体の奥側へ引く
+       let q=p/.35;
+       handX=shoulderX+18-10*q;
+     }else{
+       // 横から振り抜く: 肩の高さを変えず、腕が前へ開く
+       let q=(p-.35)/.65;
+       handX=shoulderX+8+58*(1-Math.pow(1-q,2));
+     }
    }
  }
 
@@ -125,9 +132,17 @@ function drawFighter(a,enemy=false){
 
  // hand + sword
  x.save();x.translate(handX,handY);x.rotate(bladeAng);
+ let bladeLen=78;
+ if(atk && atk.height==="mid" && atk.type!=="small"){
+   let impact=atk.special?.58:.42;
+   let p=Math.min(1,atk.t/impact);
+   // 横薙ぎの前半は剣が画面奥を向いて短く見え、
+   // 振り抜くにつれて本来の長さに戻る（横回転の疑似3D表現）。
+   bladeLen=24+68*Math.abs(Math.sin(p*Math.PI*.78));
+ }
  x.strokeStyle="#b98b64";x.lineWidth=11;x.beginPath();x.moveTo(-8,0);x.lineTo(10,0);x.stroke();
  x.strokeStyle="#8d6b39";x.lineWidth=10;x.beginPath();x.moveTo(10,-10);x.lineTo(10,10);x.stroke();
- x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();x.moveTo(14,0);x.lineTo(92,0);x.stroke();
+ x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();x.moveTo(14,0);x.lineTo(14+bladeLen,0);x.stroke();
  x.restore();
  x.lineCap="butt";
  // shield
