@@ -125,9 +125,16 @@ function drawKatana(a,enemy,px,ground,s){
  // shadow
  x.fillStyle="#21181088";x.beginPath();x.ellipse(0,10,55,12,0,0,Math.PI*2);x.fill();
  // legs / lighter armor
- x.fillStyle="#342f2d";
- x.fillRect(-30-heavyPose*8,-64+heavyPose*5,14,66-heavyPose*5);
- x.fillRect(16+heavyPose*15,-64+heavyPose*5,14,66-heavyPose*5);
+ // 刀兵の脚：腰から自然に出し、膝を曲げて前後に開く。
+ x.strokeStyle="#342f2d";x.lineCap="round";
+ let kh=heavyPose*7, ks=heavyPose*10;
+ x.lineWidth=14;
+ x.beginPath();x.moveTo(-12,-64+kh);x.lineTo(-23-ks*.35,-36+kh);x.lineTo(-31-ks*.55,-2);x.stroke();
+ x.beginPath();x.moveTo(12,-64+kh);x.lineTo(26+ks,-36+kh);x.lineTo(35+ks*1.4,-2);x.stroke();
+ x.lineWidth=11;
+ x.beginPath();x.moveTo(-31-ks*.55,-2);x.lineTo(-43-ks*.6,2);x.stroke();
+ x.beginPath();x.moveTo(35+ks*1.4,-2);x.lineTo(48+ks*1.5,2);x.stroke();
+ x.lineCap="butt";
  x.fillStyle="#72502e";for(let i=-2;i<=2;i++)x.fillRect(i*12-5,-104,10,46);
  x.fillStyle="#514536";x.beginPath();x.moveTo(-34,-168);x.lineTo(33,-168);x.lineTo(28,-98);x.lineTo(-28,-98);x.closePath();x.fill();
  x.strokeStyle="#b99350";x.lineWidth=4;for(let yy=-156;yy<-108;yy+=14){x.beginPath();x.moveTo(-28,yy);x.lineTo(27,yy);x.stroke()}
@@ -199,8 +206,19 @@ function drawFighter(a,enemy=false){
    x.fillRect(-22-spread*.55,-65+shorten,15,67-shorten);
    x.fillRect(8+spread,-65+shorten,15,67-shorten);
  }else{
-   // 通常立ちも少し足を広げる
-   x.fillRect(-29,-65,15,67);x.fillRect(15,-65,15,67);
+   // 通常立ち：股関節は自然な位置のまま、膝を外へ向けて足を開く戦闘姿勢。
+   // 単に2本の脚を平行移動するのではなく、太腿→膝→足首を折って描く。
+   x.strokeStyle=enemy?"#3e342b":"#2d3337";
+   x.lineWidth=15;x.lineCap="round";
+   // 後ろ脚
+   x.beginPath();x.moveTo(-13,-64);x.lineTo(-23,-35);x.lineTo(-31,-2);x.stroke();
+   // 前脚
+   x.beginPath();x.moveTo(13,-64);x.lineTo(27,-36);x.lineTo(34,-2);x.stroke();
+   // 足先を外へ
+   x.lineWidth=12;
+   x.beginPath();x.moveTo(-31,-2);x.lineTo(-43,2);x.stroke();
+   x.beginPath();x.moveTo(34,-2);x.lineTo(47,2);x.stroke();
+   x.lineCap="butt";
  }
  // lamellar skirt
  x.fillStyle=enemy?"#8a6233":"#6f2e27";for(let i=-2;i<=2;i++)x.fillRect(i*13-6,-105,11,48);
