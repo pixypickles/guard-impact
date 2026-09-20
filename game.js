@@ -4,14 +4,14 @@ document.addEventListener("dragstart",e=>e.preventDefault(),{passive:false});
 const c=document.querySelector("#game"),x=c.getContext("2d");
 const $=s=>document.querySelector(s); let W,H,last=0,msgT=1.5;
 function resize(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);W=innerWidth;H=innerHeight} addEventListener("resize",resize);resize();
-const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0,stun:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0,stun:0};
+const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0,stun:0,weapon:"shield"}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0,stun:0,weapon:"katana",riposte:0};
 let over=false, hold={small:0,heavy:0}, taps={left:0,right:0};
 function say(t){$("#msg").textContent=t;msgT=1.1}
 function attack(a,type,charged=false){
  if(over||a.atk||(a.stun||0)>0)return;
  let special=charged&&a.m>=100;
  if(special)a.m=0;
- a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid"};
+ a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:a.weapon==="katana"?.90:1};
 }
 function releaseAttack(type){let d=performance.now()-(hold[type]||performance.now());hold[type]=0;attack(P,type,d>380)}
 function guardSet(a,g){a.guard=g}
@@ -33,26 +33,44 @@ addEventListener("keydown",e=>{if(e.repeat)return;let m={ArrowLeft:"left",ArrowR
 addEventListener("keyup",e=>{let m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",z:"guard",x:"small",c:"heavy"};if(m[e.key])input(m[e.key],false)});
 function resolve(a,b){
  let q=a.atk;if(!q||q.hit)return;
- let impact=q.special?.58:q.type==="small"?.28:.42;
+ let speed=q.speed||1;
+ let impact=(q.special?.58:q.type==="small"?.28:.42)*speed;
  if(q.t<impact)return;q.hit=true;
  let dist=Math.abs(a.x-b.x), range=q.special?.34:q.type==="small"?.25:.29;
  if(dist>range)return;
  let nowGuard=b.guard===q.height;
- let just=(b.just||0)>.0;
- if(q.special){
-   // ガード不能技。通常ガードは貫通し、ジャストガードだけ防げる。
+ let just=(b.just||0)>0;
+
+ // 刀キャラ: 刀を両手で構え、同じ高さの通常攻撃は自動受け。
+ // 完全防御ではなく少量の削りダメージを受ける。
+ if(b.weapon==="katana" && !q.special && nowGuard){
    if(just){
-     b.m=Math.min(100,b.m+30);
-     a.stun=.65;a.atk=null;a.step=-a.face*.018;
-     b.flash=1;say("JUST GUARD! よろけ！");
+     // ジャストガードは受け流し斬り。攻撃を弾き、そのまま即反撃。
+     a.stun=.42;a.atk=null;a.step=-a.face*.012;
+     b.flash=1;b.riposte=.28;
+     a.hp-=q.type==="small"?7:11;
+     say("受け流し斬り！");
+     if(a.hp<=0){a.hp=0;over=true;say(b===P?"勝利！ TAPで再戦":"敗北… TAPで再戦")}
+     return;
+   }
+   let chip=q.type==="small"?2:4;
+   b.hp-=chip;b.flash=.35;
+   say("刀受け -"+chip);
+ }else if(q.special){
+   // ガード不能は刀の自動受けも貫通。ジャストだけ防げる。
+   if(just){
+     if(b.weapon==="katana"){
+       a.stun=.60;a.atk=null;a.step=-a.face*.018;b.riposte=.32;
+       a.hp-=13;b.flash=1;say("受け流し斬り！");
+     }else{
+       b.m=Math.min(100,b.m+30);a.stun=.65;a.atk=null;a.step=-a.face*.018;b.flash=1;say("JUST GUARD! よろけ！");
+     }
      return;
    }
    b.hp-=32;b.flash=1;say("ガード不能！");
  }else if(nowGuard){
    if(just){
-     b.m=Math.min(100,b.m+24);
-     a.stun=.48;a.atk=null;a.step=-a.face*.014;
-     b.flash=1;say("JUST GUARD! よろけ！");
+     b.m=Math.min(100,b.m+24);a.stun=.48;a.atk=null;a.step=-a.face*.014;b.flash=1;say("JUST GUARD! よろけ！");
      return;
    }
    b.m=Math.min(100,b.m+(q.type==="small"?13:22));b.flash=.6;say("ガード");
@@ -65,18 +83,22 @@ let cpu=0;
 function ai(dt){
  cpu-=dt;if(cpu>0||over||E.stun>0)return;cpu=.22+Math.random()*.5;
  let d=Math.abs(P.x-E.x);
- if(P.atk&&Math.random()<.68){E.guard=P.atk.height;if(P.atk.special&&Math.random()<.42)E.just=.11}
+ if(P.atk){
+   // 刀は攻撃方向へ自動的に刀を合わせる。一定確率でジャスト受け流し。
+   E.guard=P.atk.height;
+   if(Math.random()<(P.atk.special?.38:.24))E.just=.11;
+ }
  else if(d>.43)step(E,-1);
  else if(d<.36)step(E,1); else if(Math.random()<.16)step(E,Math.random()<.5?-1:1);
  else {let charged=E.m>=100&&Math.random()<.38;E.aim=Math.random()<.5?"high":"mid";attack(E,Math.random()<.58?"small":"heavy",charged)}
 }
 function update(a,dt){
- a.stun=Math.max(0,(a.stun||0)-dt);
+ a.stun=Math.max(0,(a.stun||0)-dt);a.riposte=Math.max(0,(a.riposte||0)-dt);
  if(a.step){a.x+=a.step;a.step*=.72;if(Math.abs(a.step)<.002)a.step=0}
  if(a.stun>0){a.atk=null}
  if(a.atk){
    a.atk.t+=dt;
-   let dur=a.atk.special?.95:a.atk.type==="small"?.55:.75;
+   let dur=(a.atk.special?.95:a.atk.type==="small"?.55:.75)*(a.atk.speed||1);
    if(a.atk.type!=="small"){
      // 大攻撃の前半で相手方向へ実際に一歩進む
      let target=.035, prev=a.atk.lungeDone||0;
@@ -89,8 +111,60 @@ function update(a,dt){
  }
  a.x=Math.max(.12,Math.min(.88,a.x));a.flash=Math.max(0,a.flash-dt*3);a.just=Math.max(0,(a.just||0)-dt);
 }
+function drawKatana(a,enemy,px,ground,s){
+ let atk=a.atk, heavyPose=0;
+ if(atk&&atk.type!=="small"){
+   let dur=(atk.special?.95:.75)*(atk.speed||1);
+   heavyPose=Math.sin(Math.min(1,atk.t/dur)*Math.PI);
+ }
+ x.save();x.translate(px,ground+heavyPose*9*s);x.scale(a.face*s,s);
+ if(a.stun>0){x.rotate(-.12);x.translate(-7,2)}
+ // shadow
+ x.fillStyle="#21181088";x.beginPath();x.ellipse(0,10,55,12,0,0,Math.PI*2);x.fill();
+ // legs / lighter armor
+ x.fillStyle="#342f2d";x.fillRect(-22-heavyPose*8,-64+heavyPose*5,14,66-heavyPose*5);x.fillRect(9+heavyPose*15,-64+heavyPose*5,14,66-heavyPose*5);
+ x.fillStyle="#72502e";for(let i=-2;i<=2;i++)x.fillRect(i*12-5,-104,10,46);
+ x.fillStyle="#514536";x.beginPath();x.moveTo(-34,-168);x.lineTo(33,-168);x.lineTo(28,-98);x.lineTo(-28,-98);x.closePath();x.fill();
+ x.strokeStyle="#b99350";x.lineWidth=4;for(let yy=-156;yy<-108;yy+=14){x.beginPath();x.moveTo(-28,yy);x.lineTo(27,yy);x.stroke()}
+ // head/helmet + visible eye dot
+ x.fillStyle="#c79467";x.beginPath();x.arc(0,-193,19,0,Math.PI*2);x.fill();
+ x.fillStyle="#1d1713";x.beginPath();x.arc(10,-195,2.8,0,Math.PI*2);x.fill();
+ x.fillStyle="#493c2e";x.beginPath();x.arc(0,-201,23,Math.PI,Math.PI*2);x.fill();x.fillRect(-23,-202,46,9);
+ x.strokeStyle="#a82f25";x.lineWidth=6;x.beginPath();x.moveTo(0,-223);x.lineTo(6,-246);x.stroke();
+
+ // 両手持ち。通常構えは中段、上段入力/AI時は高く構える。
+ let h1x=35,h1y=-143,h2x=18,h2y=-132,ang=-.08;
+ if(a.riposte>0){
+   // ジャスト受け流し斬り: 素早く前へ切り返す
+   let p=1-a.riposte/.32;
+   ang=-.85+p*1.05;h1x=38+p*24;h1y=-148+p*10;h2x=h1x-18;h2y=h1y+8;
+ }else if(atk){
+   let impact=(atk.special?.58:atk.type==="small"?.28:.42)*(atk.speed||1);
+   let p=Math.min(1,atk.t/impact),sw=1-Math.pow(1-p,2);
+   if(atk.height==="high"){ang=-1.18+sw*1.38;h1x=32+sw*24;h1y=-158+sw*18}
+   else if(atk.type==="small"){ang=-.12;h1x=35+sw*35;h1y=-140}
+   else {ang=.42-sw*.68;h1x=34+sw*34;h1y=-132}
+   h2x=h1x-18;h2y=h1y+9;
+ }else if(a.guard==="high"){ang=-.55;h1y=-154;h2y=-139}
+
+ // both arms to the two hands
+ x.strokeStyle="#c79467";x.lineWidth=11;x.lineCap="round";
+ x.beginPath();x.moveTo(29,-153);x.lineTo(h1x,h1y);x.stroke();
+ x.beginPath();x.moveTo(-25,-151);x.lineTo(h2x,h2y);x.stroke();
+
+ // katana handle + blade
+ x.save();x.translate(h1x,h1y);x.rotate(ang);
+ x.strokeStyle="#30261f";x.lineWidth=10;x.beginPath();x.moveTo(-25,0);x.lineTo(8,0);x.stroke();
+ x.strokeStyle="#b18a45";x.lineWidth=9;x.beginPath();x.moveTo(8,-10);x.lineTo(8,10);x.stroke();
+ if(atk&&atk.special){x.shadowBlur=16;x.shadowColor="#ff3b18";x.strokeStyle="#ff7840";x.lineWidth=9;x.beginPath();x.moveTo(13,0);x.lineTo(108,0);x.stroke();x.shadowBlur=0}
+ x.strokeStyle=(atk&&atk.special)?"#ffd27a":"#e8e3d6";x.lineWidth=6;x.beginPath();x.moveTo(13,0);x.lineTo(108,0);x.stroke();
+ x.restore();
+ x.lineCap="butt";
+ x.restore();
+}
 function drawFighter(a,enemy=false){
  let px=a.x*W, ground=H*.60, s=Math.min(W,H)/520;
+ if(a.weapon==="katana"){drawKatana(a,enemy,px,ground,s);return;}
  // 大攻撃（上段・中段共通）は一歩踏み込み、少し腰を落とす。
  // 小攻撃ではこの姿勢変化を行わない。
  let heavyPose=0;
@@ -130,7 +204,7 @@ function drawFighter(a,enemy=false){
  // shoulder plates
  x.fillStyle=enemy?"#6d593d":"#303a3e";x.fillRect(-53,-165,22,42);x.fillRect(31,-165,22,42);
  // head + helmet
- x.fillStyle="#c79467";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#211810";x.beginPath();x.arc(10,-196,2.7,0,Math.PI*2);x.fill();
+ x.fillStyle="#c79467";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#211810";x.beginPath();x.arc(10,-196,3.2,0,Math.PI*2);x.fill();
  x.fillStyle=enemy?"#665033":"#2d3639";x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.fill();x.fillRect(-24,-203,48,10);
  x.strokeStyle="#a82f25";x.lineWidth=7;x.beginPath();x.moveTo(0,-224);x.lineTo(-7,-250);x.stroke();
  // sword arm
@@ -240,5 +314,5 @@ function loop(t){
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
 }
-function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0});over=false;say("再戦！")}
+function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield"});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0});over=false;say("再戦！")}
 say("盾閃　開始");requestAnimationFrame(loop);
