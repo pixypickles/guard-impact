@@ -107,24 +107,26 @@ function drawFighter(a,enemy=false){
      handY=shoulderY+18;
      bladeAng=0;
    }else{
-     // 中段・大 / 必殺: 奥→正面へ伸ばす→手前側まで振り抜く
+     // 中段・大 / 必殺:
+     // 構えでは鍔より刀身が左側。そこから前方へ横払いし、
+     // 最後も身体を通り越して刀身が左側へ抜ける。
      const p=swing;
      handY=shoulderY+34;
-     if(p<.34){
-       const q=p/.34;
-       handX=shoulderX+27-15*q;
-       bladeAng=0;
+     if(p<.26){
+       // テイクバック: 手は身体の横、刀身は完全に左向き
+       const q=p/.26;
+       handX=shoulderX+28-10*q;
+       bladeAng=Math.PI;
      }else if(p<.70){
-       const q=(p-.34)/.36;
-       handX=shoulderX+12+58*(1-Math.pow(1-q,2));
-       bladeAng=0;
+       // 横払い: 左向きの刀身を手前経由で右へ回す
+       const q=(p-.26)/.44;
+       handX=shoulderX+18+54*(1-Math.pow(1-q,2));
+       bladeAng=Math.PI*(1-q);
      }else{
-       // フォロースルー: 下へ落とさない。
-       // 伸び切った剣を画面手前へ回し込み、そのまま攻撃者の左側へ抜く。
+       // フォロースルー: 高さを落とさず左側まで振り抜く
        const q=(p-.70)/.30;
-       handX=shoulderX+70-72*q;
-       handY=shoulderY+34;       // 高さ固定
-       bladeAng=.02-.18*q;       // ほぼ水平を維持
+       handX=shoulderX+72-56*q;
+       bladeAng=Math.PI*q;
      }
    }
  }
@@ -139,17 +141,16 @@ function drawFighter(a,enemy=false){
  if(atk && atk.height==="mid" && atk.type!=="small"){
    let impact=atk.special?.58:.42;
    let p=Math.min(1,atk.t/impact);
-   if(p<.34){
-     let q=p/.34;
-     bladeLen=76-58*q;
+   // 開始と終了は刀身が左向きなので全長を見せる。
+   // 横払いの途中、画面手前を向く瞬間だけ短くして奥行きを表現する。
+   if(p<.26){
+     bladeLen=88;
    }else if(p<.70){
-     let q=(p-.34)/.36;
-     bladeLen=18+74*Math.sin(Math.min(1,q)*Math.PI/2);
+     let q=(p-.26)/.44;
+     bladeLen=22+66*Math.abs(Math.cos(q*Math.PI));
    }else{
      let q=(p-.70)/.30;
-     // 画面手前を向くにつれて短く見える。
-     // 手自体は左へ抜けるので「下方向」ではなく手前→左のフォロースルーになる。
-     bladeLen=92-68*Math.sin(q*Math.PI/2);
+     bladeLen=22+66*q;
    }
  }
  x.strokeStyle="#b98b64";x.lineWidth=11;x.beginPath();x.moveTo(-8,0);x.lineTo(10,0);x.stroke();
