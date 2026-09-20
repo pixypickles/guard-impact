@@ -65,12 +65,38 @@ function update(a,dt){
 }
 function drawFighter(a,enemy=false){
  let px=a.x*W, ground=H*.60, s=Math.min(W,H)/520;
- x.save();x.translate(px,ground);x.scale(a.face*s,s);
+ // 大攻撃（上段・中段共通）は一歩踏み込み、少し腰を落とす。
+ // 小攻撃ではこの姿勢変化を行わない。
+ let heavyPose=0;
+ if(a.atk && a.atk.type!=="small"){
+   let dur=a.atk.special?.95:.75;
+   let p=Math.min(1,a.atk.t/dur);
+   // 前半で踏み込み、攻撃後半で自然に戻る
+   heavyPose=Math.sin(p*Math.PI);
+ }
+ let lunge=heavyPose*18;
+ let crouch=heavyPose*10;
+ x.save();x.translate(px+a.face*lunge*s,ground+crouch*s);x.scale(a.face*s,s);
  if(a.flash)x.globalAlpha=.55+.45*Math.sin(performance.now()/35);
  // shadow
  x.fillStyle="#21181088";x.beginPath();x.ellipse(0,10,58,13,0,0,Math.PI*2);x.fill();
  // legs / boots
- x.fillStyle=enemy?"#3e342b":"#2d3337";x.fillRect(-22,-65,15,67);x.fillRect(8,-65,15,67);
+ x.fillStyle=enemy?"#3e342b":"#2d3337";
+ if(heavyPose>0){
+   // 踏み込み側の脚を前へ、後ろ脚を少し残して腰を落とす
+   x.save();
+   x.translate(heavyPose*5,0);
+   x.rotate(-.10*heavyPose);
+   x.fillRect(-22,-62,15,64);
+   x.restore();
+   x.save();
+   x.translate(-heavyPose*4,0);
+   x.rotate(.08*heavyPose);
+   x.fillRect(8,-62,15,64);
+   x.restore();
+ }else{
+   x.fillRect(-22,-65,15,67);x.fillRect(8,-65,15,67);
+ }
  // lamellar skirt
  x.fillStyle=enemy?"#8a6233":"#6f2e27";for(let i=-2;i<=2;i++)x.fillRect(i*13-6,-105,11,48);
  // torso armor
