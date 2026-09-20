@@ -60,8 +60,20 @@ function ai(dt){
 }
 function update(a,dt){
  if(a.step){a.x+=a.step;a.step*=.72;if(Math.abs(a.step)<.002)a.step=0}
+ if(a.atk){
+   a.atk.t+=dt;
+   let dur=a.atk.special?.95:a.atk.type==="small"?.55:.75;
+   if(a.atk.type!=="small"){
+     // 大攻撃の前半で相手方向へ実際に一歩進む
+     let target=.035, prev=a.atk.lungeDone||0;
+     let phase=Math.min(1,a.atk.t/(dur*.42));
+     let wanted=target*(1-Math.pow(1-phase,2));
+     a.x+=a.face*(wanted-prev);
+     a.atk.lungeDone=wanted;
+   }
+   if(a.atk.t>dur)a.atk=null;
+ }
  a.x=Math.max(.12,Math.min(.88,a.x));a.flash=Math.max(0,a.flash-dt*3);a.just=Math.max(0,(a.just||0)-dt);
- if(a.atk){a.atk.t+=dt;let dur=a.atk.special?.95:a.atk.type==="small"?.55:.75;if(a.atk.t>dur)a.atk=null}
 }
 function drawFighter(a,enemy=false){
  let px=a.x*W, ground=H*.60, s=Math.min(W,H)/520;
@@ -74,26 +86,19 @@ function drawFighter(a,enemy=false){
    // 前半で踏み込み、攻撃後半で自然に戻る
    heavyPose=Math.sin(p*Math.PI);
  }
- let lunge=heavyPose*18;
+ // 踏み込みは実際のX座標で相手方向へ移動する。描画では腰だけ落とす。
  let crouch=heavyPose*10;
- x.save();x.translate(px+a.face*lunge*s,ground+crouch*s);x.scale(a.face*s,s);
+ x.save();x.translate(px,ground+crouch*s);x.scale(a.face*s,s);
  if(a.flash)x.globalAlpha=.55+.45*Math.sin(performance.now()/35);
  // shadow
  x.fillStyle="#21181088";x.beginPath();x.ellipse(0,10,58,13,0,0,Math.PI*2);x.fill();
  // legs / boots
  x.fillStyle=enemy?"#3e342b":"#2d3337";
  if(heavyPose>0){
-   // 踏み込み側の脚を前へ、後ろ脚を少し残して腰を落とす
-   x.save();
-   x.translate(heavyPose*5,0);
-   x.rotate(-.10*heavyPose);
-   x.fillRect(-22,-62,15,64);
-   x.restore();
-   x.save();
-   x.translate(-heavyPose*4,0);
-   x.rotate(.08*heavyPose);
-   x.fillRect(8,-62,15,64);
-   x.restore();
+   // 足を左右方向に広げ、前脚を相手側へ出して踏ん張る
+   let spread=heavyPose*18, shorten=heavyPose*7;
+   x.fillRect(-22-spread*.55,-65+shorten,15,67-shorten);
+   x.fillRect(8+spread,-65+shorten,15,67-shorten);
  }else{
    x.fillRect(-22,-65,15,67);x.fillRect(8,-65,15,67);
  }
