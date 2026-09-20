@@ -4,18 +4,18 @@ document.addEventListener("dragstart",e=>e.preventDefault(),{passive:false});
 const c=document.querySelector("#game"),x=c.getContext("2d");
 const $=s=>document.querySelector(s); let W,H,last=0,msgT=1.5;
 function resize(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);W=innerWidth;H=innerHeight} addEventListener("resize",resize);resize();
-const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0};
+const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0,stun:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0,stun:0};
 let over=false, hold={small:0,heavy:0}, taps={left:0,right:0};
 function say(t){$("#msg").textContent=t;msgT=1.1}
 function attack(a,type,charged=false){
- if(over||a.atk)return;
+ if(over||a.atk||(a.stun||0)>0)return;
  let special=charged&&a.m>=100;
  if(special)a.m=0;
  a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid"};
 }
 function releaseAttack(type){let d=performance.now()-(hold[type]||performance.now());hold[type]=0;attack(P,type,d>380)}
 function guardSet(a,g){a.guard=g}
-function step(a,dir){a.step=dir*.055}
+function step(a,dir){if((a.stun||0)>0)return;a.step=dir*.055}
 function input(act,down){
  if(over&&down){reset();return}
  if(act==="up"&&down){P.aim="high";guardSet(P,"high");P.just=.11}
@@ -40,9 +40,21 @@ function resolve(a,b){
  let nowGuard=b.guard===q.height;
  let just=(b.just||0)>.0;
  if(q.special){
-   if(just){b.m=Math.min(100,b.m+30);say("JUST GUARD!");b.flash=1;return}
-   b.hp-=32;say("必殺！");
+   // ガード不能技。通常ガードは貫通し、ジャストガードだけ防げる。
+   if(just){
+     b.m=Math.min(100,b.m+30);
+     a.stun=.65;a.atk=null;a.step=-a.face*.018;
+     b.flash=1;say("JUST GUARD! よろけ！");
+     return;
+   }
+   b.hp-=32;b.flash=1;say("ガード不能！");
  }else if(nowGuard){
+   if(just){
+     b.m=Math.min(100,b.m+24);
+     a.stun=.48;a.atk=null;a.step=-a.face*.014;
+     b.flash=1;say("JUST GUARD! よろけ！");
+     return;
+   }
    b.m=Math.min(100,b.m+(q.type==="small"?13:22));b.flash=.6;say("ガード");
  }else{
    b.hp-=q.type==="small"?9:16;b.flash=1;say(q.height==="high"?"上段 HIT":"中段 HIT");
@@ -51,7 +63,7 @@ function resolve(a,b){
 }
 let cpu=0;
 function ai(dt){
- cpu-=dt;if(cpu>0||over)return;cpu=.22+Math.random()*.5;
+ cpu-=dt;if(cpu>0||over||E.stun>0)return;cpu=.22+Math.random()*.5;
  let d=Math.abs(P.x-E.x);
  if(P.atk&&Math.random()<.68){E.guard=P.atk.height;if(P.atk.special&&Math.random()<.42)E.just=.11}
  else if(d>.43)step(E,-1);
@@ -59,7 +71,9 @@ function ai(dt){
  else {let charged=E.m>=100&&Math.random()<.38;E.aim=Math.random()<.5?"high":"mid";attack(E,Math.random()<.58?"small":"heavy",charged)}
 }
 function update(a,dt){
+ a.stun=Math.max(0,(a.stun||0)-dt);
  if(a.step){a.x+=a.step;a.step*=.72;if(Math.abs(a.step)<.002)a.step=0}
+ if(a.stun>0){a.atk=null}
  if(a.atk){
    a.atk.t+=dt;
    let dur=a.atk.special?.95:a.atk.type==="small"?.55:.75;
@@ -89,6 +103,12 @@ function drawFighter(a,enemy=false){
  // 踏み込みは実際のX座標で相手方向へ移動する。描画では腰だけ落とす。
  let crouch=heavyPose*10;
  x.save();x.translate(px,ground+crouch*s);x.scale(a.face*s,s);
+ if(a.stun>0){
+   // ジャストガードを受けた側は後ろへのけぞる
+   let wobble=Math.sin(a.stun*34)*.035;
+   x.rotate(-.13+wobble);
+   x.translate(-8,2);
+ }
  if(a.flash)x.globalAlpha=.55+.45*Math.sin(performance.now()/35);
  // shadow
  x.fillStyle="#21181088";x.beginPath();x.ellipse(0,10,58,13,0,0,Math.PI*2);x.fill();
@@ -179,7 +199,14 @@ function drawFighter(a,enemy=false){
  }
  x.strokeStyle="#b98b64";x.lineWidth=11;x.beginPath();x.moveTo(-8,0);x.lineTo(10,0);x.stroke();
  x.strokeStyle="#8d6b39";x.lineWidth=10;x.beginPath();x.moveTo(10,-10);x.lineTo(10,10);x.stroke();
- x.strokeStyle="#e5dfca";x.lineWidth=7;x.beginPath();
+ // ガード不能技は刀身を赤橙色に発光させ、通常攻撃と見分けやすくする。
+ if(atk&&atk.special){
+   x.save();x.shadowBlur=18;x.shadowColor="#ff3b18";x.strokeStyle="#ff6a24";x.lineWidth=10;x.beginPath();
+   if(bladeDir>0){x.moveTo(14,0);x.lineTo(14+bladeLen,0);}
+   else{x.moveTo(-14,0);x.lineTo(-14-bladeLen,0);}
+   x.stroke();x.restore();
+ }
+ x.strokeStyle=(atk&&atk.special)?"#ffd27a":"#e5dfca";x.lineWidth=7;x.beginPath();
  if(bladeDir>0){x.moveTo(14,0);x.lineTo(14+bladeLen,0);}
  else{x.moveTo(-14,0);x.lineTo(-14-bladeLen,0);}
  x.stroke();
@@ -213,5 +240,5 @@ function loop(t){
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
 }
-function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0});over=false;say("再戦！")}
+function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0});over=false;say("再戦！")}
 say("盾閃　開始");requestAnimationFrame(loop);
