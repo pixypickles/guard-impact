@@ -273,7 +273,11 @@ function drawRapier(a,enemy,px,ground,s){
  x.lineWidth=10;x.beginPath();x.moveTo(-40,-2);x.lineTo(-53,2);x.moveTo(46+heavy*30,-2);x.lineTo(60+heavy*34,2);x.stroke();
  x.shadowBlur=0;x.lineCap="butt";
  // long musketeer coat
- x.fillStyle="#30205c";x.beginPath();x.moveTo(-34,-169);x.lineTo(33,-169);x.lineTo(29,-96);x.lineTo(15,-72);x.lineTo(0,-99);x.lineTo(-17,-72);x.lineTo(-30,-96);x.closePath();x.fill();
+ // 明るい背景が股から抜けて見えないよう、濃色のキュロットを先に描く。
+ x.fillStyle="#211638";x.beginPath();x.moveTo(-23,-94);x.lineTo(23,-94);x.lineTo(25,-58);x.lineTo(8,-54);x.lineTo(0,-66);x.lineTo(-8,-54);x.lineTo(-25,-58);x.closePath();x.fill();
+ x.fillStyle="#30205c";x.beginPath();x.moveTo(-34,-169);x.lineTo(33,-169);x.lineTo(29,-96);x.lineTo(18,-72);x.lineTo(7,-79);x.lineTo(0,-88);x.lineTo(-7,-79);x.lineTo(-18,-72);x.lineTo(-30,-96);x.closePath();x.fill();
+ // 前中心にも布を残し、V字の隙間を衣装として埋める。
+ x.fillStyle="#251943";x.beginPath();x.moveTo(-11,-96);x.lineTo(11,-96);x.lineTo(12,-60);x.lineTo(0,-67);x.lineTo(-12,-60);x.closePath();x.fill();
  x.strokeStyle="#ffcf38";x.shadowColor="#ffcf38";x.shadowBlur=8;x.lineWidth=3;
  x.beginPath();x.moveTo(0,-166);x.lineTo(0,-103);x.moveTo(-29,-116);x.lineTo(29,-116);x.stroke();x.shadowBlur=0;
  // shoulders / collar
