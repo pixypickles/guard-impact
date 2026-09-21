@@ -4,7 +4,7 @@ document.addEventListener("dragstart",e=>e.preventDefault(),{passive:false});
 const c=document.querySelector("#game"),x=c.getContext("2d");
 const $=s=>document.querySelector(s); let W,H,last=0,msgT=1.5;
 function resize(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);W=innerWidth;H=innerHeight} addEventListener("resize",resize);resize();
-const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0,stun:0,weapon:"shield",guardKick:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0,stun:0,weapon:"katana",riposte:0,guardKick:0};
+const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0,stun:0,weapon:"shield",guardKick:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0};
 let over=false, hold={small:0,heavy:0}, taps={left:0,right:0};
 function say(t){$("#msg").textContent=t;msgT=1.1}
 function attack(a,type,charged=false){
@@ -90,7 +90,7 @@ function resolve(a,b){
  if(b.weapon==="katana" && !q.special && nowGuard){
    if(just){
      // ジャストガードは受け流し斬り。攻撃を弾き、そのまま即反撃。
-     sparkGuard(b,q.height,true);b.guardKick=.16;q.deflected=true;q.deflectT=.20;a.stun=.42;a.step=-a.face*.012;
+     sparkGuard(b,q.height,true);b.guardKick=.16;b.guardPose=.24;q.deflected=true;q.deflectT=.20;a.stun=.42;a.step=-a.face*.012;
      b.flash=1;b.riposte=.28;
      b.m=Math.min(100,b.m+24);
      hitImpact(a,q.height,q.type!=="small");a.guardKick=.09;
@@ -100,7 +100,7 @@ function resolve(a,b){
      return;
    }
    let chip=q.type==="small"?.5:1;
-   sparkGuard(b,q.height,false);b.guardKick=.11;q.deflected=true;q.deflectT=.16;
+   sparkGuard(b,q.height,false);b.guardKick=.11;b.guardPose=.20;q.deflected=true;q.deflectT=.16;
    b.hp-=chip;b.flash=.35;
    b.m=Math.min(100,b.m+(q.type==="small"?10:17));
    say("刀受け -"+chip);
@@ -108,7 +108,7 @@ function resolve(a,b){
    // ガード不能は刀の自動受けも貫通。ジャストだけ防げる。
    if(just){
      if(b.weapon==="katana"){
-       sparkGuard(b,q.height,true);b.guardKick=.16;q.deflected=true;q.deflectT=.24;a.stun=.60;a.step=-a.face*.018;b.riposte=.32;
+       sparkGuard(b,q.height,true);b.guardKick=.16;b.guardPose=.26;q.deflected=true;q.deflectT=.24;a.stun=.60;a.step=-a.face*.018;b.riposte=.32;
        b.m=Math.min(100,b.m+30);
        hitImpact(a,q.height,true);a.guardKick=.11;
        a.hp-=16;b.flash=1;say("受け流し斬り！");
@@ -146,6 +146,7 @@ function ai(dt){
 }
 function update(a,dt){
  a.stun=Math.max(0,(a.stun||0)-dt);a.riposte=Math.max(0,(a.riposte||0)-dt);
+ a.guardPose=Math.max(0,(a.guardPose||0)-dt);
  let oldGK=a.guardKick||0;a.guardKick=Math.max(0,oldGK-dt);
  if(oldGK>0)a.x-=a.face*dt*.018;
  if(a.step){a.x+=a.step;a.step*=.72;if(Math.abs(a.step)<.002)a.step=0}
@@ -213,7 +214,16 @@ function drawKatana(a,enemy,px,ground,s){
    else {ang=.42-sw*.68;h1x=34+sw*34;h1y=-132}
    h2x=h1x-18;h2y=h1y+9;
  }else if(a.guard==="high"){ang=-.55;h1y=-154;h2y=-139}
- if(atk&&atk.deflected){let r=Math.max(0,(atk.deflectT||0)/.24);ang-=.62*r;h1x-=10*r;h2x-=8*r;}
+
+ // 刀受け中は「受けている」と一目で分かる専用姿勢。
+ // 腕を身体の近くへ畳み、両手を胸元へ寄せ、刃をほぼ真上に立てる。
+ let gp=Math.min(1,(a.guardPose||0)/.20);
+ if(gp>0){
+   ang=-1.48;
+   h1x=19;h1y=a.guard==="high"?-151:-137;
+   h2x=7; h2y=a.guard==="high"?-139:-125;
+ }
+ if(atk&&atk.deflected){let r=Math.max(0,(atk.deflectT||0)/.24);ang-=.20*r;h1x-=4*r;h2x-=3*r;}
 
  // both arms to the two hands
  x.strokeStyle="#c79467";x.lineWidth=11;x.lineCap="round";
@@ -392,5 +402,5 @@ function loop(t){
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
 }
-function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield",guardKick:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0,guardKick:0});over=false;sparks.length=0;impacts.length=0;say("再戦！")}
+function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield",guardKick:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0});over=false;sparks.length=0;impacts.length=0;say("再戦！")}
 say("盾閃　開始");requestAnimationFrame(loop);
