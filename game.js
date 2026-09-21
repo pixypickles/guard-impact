@@ -231,8 +231,8 @@ function drawWeaponTrails(){
  for(const p of weaponTrails){
   let k=1-p.t/p.life,s=Math.min(W,H)/520,ox=p.screen?0:p.a.x*W,oy=p.screen?0:H*.60;
   x.globalAlpha=k*(p.strong?.52:.34);
-  x.strokeStyle=p.kind==="katana"?"#72ff8d":"#71efff";
-  x.shadowColor=p.kind==="katana"?"#39ff14":"#00eaff";x.shadowBlur=p.strong?24:15;
+  x.strokeStyle=p.kind==="katana"?"#69ff45":"#71efff";
+  x.shadowColor=p.kind==="katana"?"#21ff00":"#00eaff";x.shadowBlur=p.strong?24:15;
   x.lineWidth=(p.strong?12:7)*k+2;
   x.beginPath();x.moveTo(ox+p.x1*s,oy+p.y1*s);x.lineTo(ox+p.x2*s,oy+p.y2*s);x.stroke();
  }
@@ -311,9 +311,10 @@ function drawKatana(a,enemy,px,ground,s){
  if(atk&&atk.special){x.shadowBlur=16;x.shadowColor="#ff3b18";x.strokeStyle="#ff7840";x.lineWidth=9;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
  x.lineTo(122,0);x.stroke();x.shadowBlur=0;x.shadowBlur=0}
  if(atk){
-  let tm=x.getTransform();
-  let tp1=new DOMPoint(13,0).matrixTransform(tm),tp2=new DOMPoint(122,0).matrixTransform(tm);
-  addWeaponTrail(a,tp1.x,tp1.y,tp2.x,tp2.y,"katana",atk.type!=="small"||atk.special,true);
+  // 刀身(13..122)を、実際の刀角度angでfighter-localへ戻して保存する。
+  // face反転はdrawWeaponTrails側で適用する。
+  addWeaponTrail(a,13*Math.cos(ang)*a.face,13*Math.sin(ang),
+    122*Math.cos(ang)*a.face,122*Math.sin(ang),"katana",atk.type!=="small"||atk.special,false);
  }
  x.strokeStyle=(atk&&atk.special)?"#fff2a8":"#aaff66";x.shadowColor=(atk&&atk.special)?"#ff285d":"#39ff14";x.shadowBlur=(atk&&atk.special)?26:22;x.lineWidth=6;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
  x.lineTo(122,0);x.stroke();x.shadowBlur=0;
@@ -452,9 +453,9 @@ function drawFighter(a,enemy=false){
    x.stroke();x.restore();
  }
  if(atk){
-   let st=bladeDir>0?14:-14,en=bladeDir>0?14+bladeLen:-14-bladeLen,tm=x.getTransform();
-   let tp1=new DOMPoint(st,0).matrixTransform(tm),tp2=new DOMPoint(en,0).matrixTransform(tm);
-   addWeaponTrail(a,tp1.x,tp1.y,tp2.x,tp2.y,"shield",atk.type!=="small"||atk.special,true);
+   let st=bladeDir>0?14:-14,en=bladeDir>0?14+bladeLen:-14-bladeLen;
+   addWeaponTrail(a,handX+Math.cos(bladeAng)*st,handY+Math.sin(bladeAng)*st,
+     handX+Math.cos(bladeAng)*en,handY+Math.sin(bladeAng)*en,"shield",atk.type!=="small"||atk.special,false);
  }
  x.shadowColor=(atk&&atk.special)?"#ff285d":"#00f6ff";x.shadowBlur=(atk&&atk.special)?26:20;x.strokeStyle=(atk&&atk.special)?"#fff0a8":"#b8ffff";x.lineWidth=7;x.beginPath();
  if(bladeDir>0){x.moveTo(14,0);x.lineTo(14+bladeLen,0);}
