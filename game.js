@@ -43,9 +43,9 @@ function hitImpact(b,height,strong=false){
 function drawImpacts(dt){
  for(let i=impacts.length-1;i>=0;i--){let p=impacts[i];p.t+=dt;if(p.t>=p.life){impacts.splice(i,1);continue}
   let k=1-p.t/p.life;x.save();x.globalAlpha=k;
-  if(p.particle){p.x+=p.vx*dt;p.y+=p.vy*dt;x.strokeStyle="#fff0a0";x.lineWidth=3*k+1;
+  if(p.particle){p.x+=p.vx*dt;p.y+=p.vy*dt;x.strokeStyle="#aef5ff";x.lineWidth=3*k+1;
    x.beginPath();x.moveTo(p.x,p.y);x.lineTo(p.x-p.vx*.018,p.y-p.vy*.018);x.stroke();}
-  else{let r=(p.strong?28:20)*(p.t/p.life)+4;x.strokeStyle="#fff7cf";x.lineWidth=(p.strong?6:4)*k+1;
+  else{let r=(p.strong?28:20)*(p.t/p.life)+4;x.strokeStyle="#e9fdff";x.lineWidth=(p.strong?6:4)*k+1;
    x.beginPath();x.arc(p.x,p.y,r,0,Math.PI*2);x.stroke();}x.restore();}
 }
 function sparkGuard(b,height,strong=false){
@@ -65,7 +65,7 @@ function drawSparks(dt){
   if(p.t>=p.life){sparks.splice(i,1);continue}
   p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt;
   let k=1-p.t/p.life;
-  x.save();x.globalAlpha=k;x.strokeStyle=p.t<p.life*.45?"#fff5b5":"#ff9c28";x.lineWidth=p.z*k+1;
+  x.save();x.globalAlpha=k;x.strokeStyle=p.t<p.life*.45?"#eaffff":"#55dcff";x.lineWidth=p.z*k+1;
   x.beginPath();x.moveTo(p.x,p.y);x.lineTo(p.x-p.vx*.025,p.y-p.vy*.025);x.stroke();x.restore();
  }
 }
@@ -174,6 +174,13 @@ function update(a,dt){
  }
  a.x=Math.max(.12,Math.min(.88,a.x));a.flash=Math.max(0,a.flash-dt*3);a.just=Math.max(0,(a.just||0)-dt);
 }
+function techTrim(kind){
+ x.save();x.globalAlpha=.85;x.strokeStyle=kind==="katana"?"#c86cff":"#57ddff";x.lineWidth=2;
+ x.shadowColor=x.strokeStyle;x.shadowBlur=6;
+ x.beginPath();x.moveTo(-27,-105);x.lineTo(0,-111);x.lineTo(27,-105);x.stroke();
+ x.beginPath();x.moveTo(-22,-88);x.lineTo(22,-88);x.stroke();
+ x.shadowBlur=0;x.restore();
+}
 function drawKatana(a,enemy,px,ground,s){
  let atk=a.atk, heavyPose=0;
  if(atk&&atk.type!=="small"){
@@ -185,10 +192,10 @@ function drawKatana(a,enemy,px,ground,s){
  if(gk>0)x.rotate(-.055*gk);
  if(a.stun>0){x.rotate(-.12);x.translate(-7,2)}
  // shadow
- x.fillStyle="#21181088";x.beginPath();x.ellipse(0,10,55,12,0,0,Math.PI*2);x.fill();
+ x.fillStyle="#0a0d1588";x.beginPath();x.ellipse(0,10,55,12,0,0,Math.PI*2);x.fill();
  // legs / lighter armor
  // 刀兵の脚：腰から自然に出し、膝を曲げて前後に開く。
- x.strokeStyle="#342f2d";x.lineCap="round";
+ x.strokeStyle="#242238";x.lineCap="round";
  let kh=heavyPose*9, ks=heavyPose*13;
  x.lineWidth=14;
  x.beginPath();x.moveTo(-12,-64+kh);x.lineTo(-23-ks*.45,-36+kh);x.lineTo(-31-ks*.65,-2);x.stroke();
@@ -200,6 +207,7 @@ function drawKatana(a,enemy,px,ground,s){
  x.fillStyle="#72502e";for(let i=-2;i<=2;i++)x.fillRect(i*12-5,-104,10,46);
  x.fillStyle="#514536";x.beginPath();x.moveTo(-34,-168);x.lineTo(33,-168);x.lineTo(28,-98);x.lineTo(-28,-98);x.closePath();x.fill();
  x.strokeStyle="#b99350";x.lineWidth=4;for(let yy=-156;yy<-108;yy+=14){x.beginPath();x.moveTo(-28,yy);x.lineTo(27,yy);x.stroke()}
+ techTrim("katana");
  // head/helmet + visible eye dot
  x.fillStyle="#c79467";x.beginPath();x.arc(0,-193,19,0,Math.PI*2);x.fill();
  x.fillStyle="#1d1713";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
@@ -241,8 +249,10 @@ function drawKatana(a,enemy,px,ground,s){
  x.save();x.translate(h1x,h1y);x.rotate(ang);
  x.strokeStyle="#30261f";x.lineWidth=10;x.beginPath();x.moveTo(-25,0);x.lineTo(8,0);x.stroke();
  x.strokeStyle="#b18a45";x.lineWidth=9;x.beginPath();x.moveTo(8,-10);x.lineTo(8,10);x.stroke();
- if(atk&&atk.special){x.shadowBlur=16;x.shadowColor="#ff3b18";x.strokeStyle="#ff7840";x.lineWidth=9;x.beginPath();x.moveTo(13,0);x.lineTo(122,0);x.stroke();x.shadowBlur=0}
- x.strokeStyle=(atk&&atk.special)?"#ffd27a":"#e8e3d6";x.lineWidth=6;x.beginPath();x.moveTo(13,0);x.lineTo(122,0);x.stroke();
+ if(atk&&atk.special){x.shadowBlur=16;x.shadowColor="#ff3b18";x.strokeStyle="#ff7840";x.lineWidth=9;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
+ x.lineTo(122,0);x.stroke();x.shadowBlur=0;x.shadowBlur=0}
+ x.strokeStyle=(atk&&atk.special)?"#ffd27a":"#e8e3d6";x.lineWidth=6;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
+ x.lineTo(122,0);x.stroke();x.shadowBlur=0;
  x.restore();
  x.lineCap="butt";
  x.restore();
@@ -272,11 +282,11 @@ function drawFighter(a,enemy=false){
  }
  if(a.flash)x.globalAlpha=.55+.45*Math.sin(performance.now()/35);
  // shadow
- x.fillStyle="#21181088";x.beginPath();x.ellipse(0,10,58,13,0,0,Math.PI*2);x.fill();
+ x.fillStyle="#0a0d1588";x.beginPath();x.ellipse(0,10,58,13,0,0,Math.PI*2);x.fill();
  // legs / boots
  // 通常時も大攻撃時も同じ「関節のある脚」を使う。
  // 大攻撃ではこの姿勢のまま膝を深く曲げ、前脚を相手側へさらに出す。
- x.strokeStyle=enemy?"#3e342b":"#2d3337";
+ x.strokeStyle=enemy?"#29263f":"#172738";
  x.lineCap="round";
  let legDrop=heavyPose*7;
  let backKneeX=-23-heavyPose*5;
@@ -297,6 +307,7 @@ function drawFighter(a,enemy=false){
  x.strokeStyle="#c29b57";x.lineWidth=4;for(let yy=-158;yy<-105;yy+=14){x.beginPath();x.moveTo(-31,yy);x.lineTo(29,yy);x.stroke()}
  // shoulder plates
  x.fillStyle=enemy?"#6d593d":"#303a3e";x.fillRect(-53,-165,22,42);x.fillRect(31,-165,22,42);
+ techTrim("shield");
  // head + helmet
  x.fillStyle="#c79467";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#211810";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
  x.fillStyle=enemy?"#665033":"#2d3639";x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.fill();x.fillRect(-24,-203,48,10);
