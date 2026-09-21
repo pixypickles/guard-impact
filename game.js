@@ -136,8 +136,14 @@ function ai(dt){
  cpu-=dt;if(cpu>0||over||E.stun>0)return;cpu=.22+Math.random()*.5;
  let d=Math.abs(P.x-E.x);
  if(P.atk){
-   // 刀は攻撃方向へ自動的に刀を合わせる。一定確率でジャスト受け流し。
+   // 刀は攻撃方向へ自動的に刀を合わせる。
+   // 受け姿勢は接触後ではなく、攻撃を認識した時点から先行して作る。
    E.guard=P.atk.height;
+   let sp=P.atk.speed||1;
+   let impact=(P.atk.special?.58:P.atk.type==="small"?.28:.42)*sp;
+   if(impact-P.atk.t>.025){
+     E.guardPose=Math.max(E.guardPose||0,P.atk.height==="high"?.34:.25);
+   }
    if(Math.random()<(P.atk.special?.38:.24))E.just=.11;
  }
  else if(d>.43)step(E,-1);
@@ -217,11 +223,12 @@ function drawKatana(a,enemy,px,ground,s){
 
  // 刀受け中は「受けている」と一目で分かる専用姿勢。
  // 腕を身体の近くへ畳み、両手を胸元へ寄せ、刃をほぼ真上に立てる。
- let gp=Math.min(1,(a.guardPose||0)/.20);
+ let gp=Math.min(1,(a.guardPose||0)/(a.guard==="high"?.34:.25));
  if(gp>0){
-   ang=-1.48;
-   h1x=19;h1y=a.guard==="high"?-151:-137;
-   h2x=7; h2y=a.guard==="high"?-139:-125;
+   // 上段は頭へ届く前に、頭の前方で刀を立てて攻撃線を遮る。
+   ang=a.guard==="high"?-1.38:-1.48;
+   h1x=a.guard==="high"?24:19;h1y=a.guard==="high"?-164:-137;
+   h2x=a.guard==="high"?10:7; h2y=a.guard==="high"?-149:-125;
  }
  if(atk&&atk.deflected){let r=Math.max(0,(atk.deflectT||0)/.24);ang-=.20*r;h1x-=4*r;h2x-=3*r;}
 
