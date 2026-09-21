@@ -31,6 +31,27 @@ document.querySelectorAll("button").forEach(b=>{
 });
 addEventListener("keydown",e=>{if(e.repeat)return;let m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",z:"guard",x:"small",c:"heavy"};if(m[e.key])input(m[e.key],true)});
 addEventListener("keyup",e=>{let m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",z:"guard",x:"small",c:"heavy"};if(m[e.key])input(m[e.key],false)});
+let sparks=[];
+function sparkGuard(b,height,strong=false){
+ let s=Math.min(W,H)/520;
+ let px=b.x*W+b.face*(b.weapon==="katana"?-28:-34)*s;
+ let py=H*.60-(height==="high"?155:125)*s;
+ let n=strong?18:11;
+ for(let i=0;i<n;i++){
+  let aa=Math.random()*Math.PI*2,sp=(strong?120:80)+Math.random()*90;
+  sparks.push({x:px,y:py,vx:Math.cos(aa)*sp,vy:Math.sin(aa)*sp-35,t:0,life:.18+Math.random()*.17,z:1.5+Math.random()*2.5});
+ }
+}
+function drawSparks(dt){
+ for(let i=sparks.length-1;i>=0;i--){
+  let p=sparks[i];p.t+=dt;
+  if(p.t>=p.life){sparks.splice(i,1);continue}
+  p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt;
+  let k=1-p.t/p.life;
+  x.save();x.globalAlpha=k;x.strokeStyle=p.t<p.life*.45?"#fff5b5":"#ff9c28";x.lineWidth=p.z*k+1;
+  x.beginPath();x.moveTo(p.x,p.y);x.lineTo(p.x-p.vx*.025,p.y-p.vy*.025);x.stroke();x.restore();
+ }
+}
 function resolve(a,b){
  let q=a.atk;if(!q||q.hit)return;
  let speed=q.speed||1;
