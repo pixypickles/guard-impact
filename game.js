@@ -217,6 +217,27 @@ function neonHelmet(kind){
  x.beginPath();x.moveTo(0,-224);x.lineTo(kind==="katana"?6:-7,-250);x.stroke();
  x.shadowBlur=0;x.restore();
 }
+let weaponTrails=[];
+function addWeaponTrail(a,x1,y1,x2,y2,kind,strong=false){
+ if(!a.atk)return;
+ weaponTrails.push({a,x1,y1,x2,y2,kind,strong,t:0,life:strong?.15:.10});
+ if(weaponTrails.length>28)weaponTrails.shift();
+}
+function updateWeaponTrails(dt){
+ for(let i=weaponTrails.length-1;i>=0;i--){let p=weaponTrails[i];p.t+=dt;if(p.t>=p.life)weaponTrails.splice(i,1);}
+}
+function drawWeaponTrails(){
+ x.save();x.lineCap="round";
+ for(const p of weaponTrails){
+  let k=1-p.t/p.life,s=Math.min(W,H)/520,ox=p.a.x*W,oy=H*.60;
+  x.globalAlpha=k*(p.strong?.52:.34);
+  x.strokeStyle=p.kind==="katana"?"#72ff8d":"#71efff";
+  x.shadowColor=p.kind==="katana"?"#39ff14":"#00eaff";x.shadowBlur=p.strong?24:15;
+  x.lineWidth=(p.strong?12:7)*k+2;
+  x.beginPath();x.moveTo(ox+p.x1*s,oy+p.y1*s);x.lineTo(ox+p.x2*s,oy+p.y2*s);x.stroke();
+ }
+ x.restore();
+}
 function drawKatana(a,enemy,px,ground,s){
  if(shake>0)px+=Math.sin(performance.now()*.12)*shake*.45;
  let atk=a.atk, heavyPose=0;
@@ -289,6 +310,7 @@ function drawKatana(a,enemy,px,ground,s){
  x.strokeStyle="#ffe43b";x.shadowColor="#ffe43b";x.shadowBlur=10;x.lineWidth=9;x.beginPath();x.moveTo(8,-10);x.lineTo(8,10);x.stroke();
  if(atk&&atk.special){x.shadowBlur=16;x.shadowColor="#ff3b18";x.strokeStyle="#ff7840";x.lineWidth=9;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
  x.lineTo(122,0);x.stroke();x.shadowBlur=0;x.shadowBlur=0}
+ if(atk){addWeaponTrail(a,13*Math.cos(ang),13*Math.sin(ang),122*Math.cos(ang),122*Math.sin(ang),"katana",atk.type!=="small"||atk.special);}
  x.strokeStyle=(atk&&atk.special)?"#fff2a8":"#aaff66";x.shadowColor=(atk&&atk.special)?"#ff285d":"#39ff14";x.shadowBlur=(atk&&atk.special)?26:22;x.lineWidth=6;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
  x.lineTo(122,0);x.stroke();x.shadowBlur=0;
  x.restore();
@@ -425,6 +447,11 @@ function drawFighter(a,enemy=false){
    else{x.moveTo(-14,0);x.lineTo(-14-bladeLen,0);}
    x.stroke();x.restore();
  }
+ if(atk){
+   let st=bladeDir>0?14:-14,en=bladeDir>0?14+bladeLen:-14-bladeLen;
+   addWeaponTrail(a,handX+Math.cos(bladeAng)*st,handY+Math.sin(bladeAng)*st,
+     handX+Math.cos(bladeAng)*en,handY+Math.sin(bladeAng)*en,"shield",atk.type!=="small"||atk.special);
+ }
  x.shadowColor=(atk&&atk.special)?"#ff285d":"#00f6ff";x.shadowBlur=(atk&&atk.special)?26:20;x.strokeStyle=(atk&&atk.special)?"#fff0a8":"#b8ffff";x.lineWidth=7;x.beginPath();
  if(bladeDir>0){x.moveTo(14,0);x.lineTo(14+bladeLen,0);}
  else{x.moveTo(-14,0);x.lineTo(-14-bladeLen,0);}
@@ -443,6 +470,7 @@ function loop(t){
  shake=Math.max(0,shake-realDt*90);
  if(shake<.12)shake=0;
  update(P,dt);update(E,dt);
+ updateWeaponTrails(realDt);
  // キャラ同士の当たり判定。プレイヤーは常に左、CPUは常に右。
  // 接触したら互いを押し戻し、すれ違い・位置の入れ替わりを禁止する。
  const minGap=.215;
@@ -464,9 +492,10 @@ function loop(t){
  x.fillStyle="#17162b";x.fillRect(0,H*.58,W,H*.42);
  // distant battlements
  x.fillStyle="#28213d";for(let i=0;i<W;i+=90){x.fillRect(i,H*.43,70,H*.15);x.fillRect(i,H*.40,18,H*.04);x.fillRect(i+45,H*.40,18,H*.04)}
+ drawWeaponTrails();
  drawFighter(P);drawFighter(E,true);drawSparks(dt);drawImpacts(dt);
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
 }
-function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield",guardKick:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0});over=false;sparks.length=0;impacts.length=0;say("再戦！")}
+function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield",guardKick:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0});over=false;sparks.length=0;weaponTrails.length=0;impacts.length=0;say("再戦！")}
 say("盾閃　開始");requestAnimationFrame(loop);
