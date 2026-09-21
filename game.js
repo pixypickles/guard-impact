@@ -368,7 +368,14 @@ function drawKatana(a,enemy,px,ground,s){
    let p=Math.min(1,atk.t/impact),sw=1-Math.pow(1-p,2);
    if(atk.height==="high"){ang=-1.18+sw*1.38;h1x=32+sw*24;h1y=-158+sw*18}
    else if(atk.type==="small"){ang=-.12;h1x=35+sw*35;h1y=-140}
-   else {ang=.42-sw*.68;h1x=34+sw*34;h1y=-132}
+   else {
+     // 刀の大・中段：突きではなく、剣の大中段と同じく横方向へ大きく薙ぎ払う。
+     // 奥側から相手側へ抜け、最後は手前側まで振り切る。
+     let q=sw;
+     ang=.18-q*2.72;
+     h1x=31+Math.sin(q*Math.PI)*31;
+     h1y=-137+Math.sin(q*Math.PI)*5;
+   }
    h2x=h1x-18;h2y=h1y+9;
  }else if(a.guard==="high"){ang=-.55;h1y=-154;h2y=-139}
 
