@@ -592,7 +592,9 @@ function loop(t){
 let selectedWeapon="shield";
 const charSelect=document.getElementById("charSelect");
 function applyCharacterChoice(w){
- selectedWeapon=w;P.weapon=w;
+ selectedWeapon=w;
+ // resetより先に選択結果をfighter stateへ保存する。
+ P.weapon=w;
  // 相手は別系統を出す。レイピア選択時は刀、それ以外はレイピア。
  E.weapon=w==="rapier"?"katana":"rapier";
  P.guard="mid";P.aim="mid";E.guard="mid";E.aim="mid";
@@ -601,5 +603,12 @@ function applyCharacterChoice(w){
  reset();
 }
 document.querySelectorAll("[data-char]").forEach(b=>b.addEventListener("click",()=>applyCharacterChoice(b.dataset.char)));
-function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield",guardKick:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0});over=false;sparks.length=0;weaponTrails.length=0;impacts.length=0;say("再戦！")}
+function reset(){
+ // 選択した武器種を保持したまま、ラウンド状態だけ初期化する。
+ let pw=P.weapon||selectedWeapon||"shield";
+ let ew=E.weapon||(pw==="rapier"?"katana":"rapier");
+ Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:pw,guardKick:0,guardPose:0,blast:null});
+ Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:ew,riposte:0,guardKick:0,guardPose:0,blast:null});
+ over=false;hitStop=0;shake=0;sparks.length=0;weaponTrails.length=0;impacts.length=0;say("再戦！");
+}
 say("盾閃　開始");requestAnimationFrame(loop);
