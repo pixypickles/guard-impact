@@ -31,16 +31,11 @@ button:active,.pressed{transform:translateY(2px);background:#7a3328}
 #guard{background:#31536dcc}
 #heavy{background:#74362ecc}
 .smallnote{position:fixed;bottom:103px;left:0;right:0;text-align:center;font-size:12px;opacity:.9;pointer-events:none}
-.stance{position:fixed;top:82px;left:50%;transform:translateX(-50%);padding:6px 14px;border:1px solid #78efff88;border-radius:999px;background:#11172dcc;color:#dffcff;font-weight:900;font-size:13px;letter-spacing:.08em;pointer-events:none}
-#splash{position:fixed;inset:0;z-index:10;display:grid;place-items:end center;padding:0 18px 8vh;background:linear-gradient(#09061922,#09061999),url("keyart.webp") center/cover no-repeat;transition:opacity .25s}
-#splash.hide{opacity:0;pointer-events:none}.startbox{text-align:center;text-shadow:0 3px 10px #000}.logo{font-size:clamp(48px,12vw,96px);font-weight:1000;letter-spacing:.16em;color:#fff1c8}.tagline{margin:2px 0 20px;font-weight:800;color:#c8faff}
-#start{width:min(72vw,320px);height:62px;border-radius:14px;border:2px solid #fff0bd;background:linear-gradient(135deg,#173d78dd,#891c50dd);font-size:20px}
 @media(min-width:800px){button{width:82px;height:82px}.cluster{grid-template-columns:repeat(2,82px)}.attack{grid-template-columns:repeat(2,90px)}.attack button{width:90px;height:90px}.dpad{width:246px;height:246px}.dup{left:82px}.dleft{top:82px}.dright{left:164px;top:82px}.ddown{left:82px;top:164px}}
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
-<div id="splash"><div class="startbox"><div class="logo">盾閃</div><div class="tagline">構えを読み、刃を弾け。</div><button id="start">対戦開始</button></div></div>
 <div class="hud">
   <div class="top">
     <div class="card"><div class="name">PLAYER</div><div class="bar"><div id="php" class="fill"></div></div><div class="meter"><div id="pm"></div></div></div>
@@ -48,8 +43,7 @@ button:active,.pressed{transform:translateY(2px);background:#7a3328}
   </div>
 </div>
 <div id="msg">盾閃</div>
-<div id="stance" class="stance">構え：中段</div>
-<div class="smallnote">←/→ 長押し：移動　↑/↓：構え　攻撃タップ：小　長押し：大　ゲージMAX＋長押し：必殺</div>
+<div class="smallnote">十字キー ↑/↓ で攻撃・盾の高さを選択　←← / →→でステップ　攻撃長押し→離す：ゲージ満タン時 必殺</div>
 <div class="controls">
  <div class="dpad">
   <button class="dup" data-act="up">↑</button>
@@ -58,7 +52,8 @@ button:active,.pressed{transform:translateY(2px);background:#7a3328}
   <button class="ddown" data-act="down">↓</button>
  </div>
  <div class="cluster attack">
-  <button id="guard" data-act="guard">ガード</button><button id="heavy" data-act="attack">攻撃</button>
+  <button id="guard" data-act="guard">ガード</button><button data-act="small">小攻撃</button>
+  <span></span><button id="heavy" data-act="heavy">大攻撃</button>
  </div>
 </div>
 <script src="game.js"></script>
