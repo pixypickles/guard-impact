@@ -267,7 +267,7 @@ function drawRapier(a,enemy,px,ground,s){
  if(gk>0)x.rotate(-.05*gk);
  // shadow + fencing legs
  x.fillStyle="#0a0d1588";x.beginPath();x.ellipse(0,10,56,12,0,0,Math.PI*2);x.fill();
- x.strokeStyle="#28123f";x.shadowColor="#ff48dc";x.shadowBlur=7;x.lineCap="round";x.lineWidth=14;
+ x.strokeStyle="#3b155c";x.shadowColor="#ff32dc";x.shadowBlur=15;x.lineCap="round";x.lineWidth=14;
  x.beginPath();x.moveTo(-10,-67);x.lineTo(-27,-36);x.lineTo(-40,-2);x.stroke();
  x.beginPath();x.moveTo(10,-67);x.lineTo(30+heavy*17,-37);x.lineTo(46+heavy*30,-2);x.stroke();
  x.lineWidth=10;x.beginPath();x.moveTo(-40,-2);x.lineTo(-53,2);x.moveTo(46+heavy*30,-2);x.lineTo(60+heavy*34,2);x.stroke();
@@ -275,11 +275,15 @@ function drawRapier(a,enemy,px,ground,s){
  // long musketeer coat
  // 明るい背景が股から抜けて見えないよう、濃色のキュロットを先に描く。
  x.fillStyle="#211638";x.beginPath();x.moveTo(-23,-94);x.lineTo(23,-94);x.lineTo(25,-58);x.lineTo(8,-54);x.lineTo(0,-66);x.lineTo(-8,-54);x.lineTo(-25,-58);x.closePath();x.fill();
- x.fillStyle="#30205c";x.beginPath();x.moveTo(-34,-169);x.lineTo(33,-169);x.lineTo(29,-96);x.lineTo(18,-72);x.lineTo(7,-79);x.lineTo(0,-88);x.lineTo(-7,-79);x.lineTo(-18,-72);x.lineTo(-30,-96);x.closePath();x.fill();
+ x.shadowColor="#b536ff";x.shadowBlur=12;x.fillStyle="#43217a";x.beginPath();x.moveTo(-34,-169);x.lineTo(33,-169);x.lineTo(29,-96);x.lineTo(18,-72);x.lineTo(7,-79);x.lineTo(0,-88);x.lineTo(-7,-79);x.lineTo(-18,-72);x.lineTo(-30,-96);x.closePath();x.fill();
  // 前中心にも布を残し、V字の隙間を衣装として埋める。
  x.fillStyle="#251943";x.beginPath();x.moveTo(-11,-96);x.lineTo(11,-96);x.lineTo(12,-60);x.lineTo(0,-67);x.lineTo(-12,-60);x.closePath();x.fill();
- x.strokeStyle="#ffcf38";x.shadowColor="#ffcf38";x.shadowBlur=8;x.lineWidth=3;
+ x.strokeStyle="#ffe04d";x.shadowColor="#ffcf38";x.shadowBlur=15;x.lineWidth=4;
  x.beginPath();x.moveTo(0,-166);x.lineTo(0,-103);x.moveTo(-29,-116);x.lineTo(29,-116);x.stroke();x.shadowBlur=0;
+ // 発光する近未来三銃士の装甲ライン
+ x.strokeStyle="#ff48e1";x.shadowColor="#ff32dc";x.shadowBlur=13;x.lineWidth=3;
+ x.beginPath();x.moveTo(-28,-145);x.lineTo(-14,-132);x.lineTo(0,-140);x.lineTo(14,-132);x.lineTo(28,-145);x.stroke();
+ x.strokeStyle="#59f3ff";x.shadowColor="#00eaff";x.beginPath();x.moveTo(-23,-105);x.lineTo(23,-105);x.stroke();x.shadowBlur=0;
  // shoulders / collar
  x.fillStyle="#7b245f";x.fillRect(-47,-165,18,27);x.fillRect(29,-165,18,27);
  x.fillStyle="#f4e5c8";x.beginPath();x.moveTo(-22,-170);x.lineTo(0,-153);x.lineTo(22,-170);x.lineTo(13,-179);x.lineTo(0,-166);x.lineTo(-13,-179);x.closePath();x.fill();
@@ -288,7 +292,7 @@ function drawRapier(a,enemy,px,ground,s){
  x.fillStyle="#1b1517";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
  x.fillStyle="#241735";x.beginPath();x.ellipse(0,-211,39,8,0,0,Math.PI*2);x.fill();
  x.beginPath();x.arc(-2,-214,23,Math.PI,Math.PI*2);x.fill();
- x.strokeStyle="#ffcf38";x.shadowColor="#ffcf38";x.shadowBlur=8;x.lineWidth=3;x.beginPath();x.moveTo(-32,-211);x.lineTo(31,-211);x.stroke();
+ x.strokeStyle="#ffe34d";x.shadowColor="#ffe000";x.shadowBlur=16;x.lineWidth=4;x.beginPath();x.moveTo(-32,-211);x.lineTo(31,-211);x.stroke();
  x.strokeStyle="#ff4acb";x.lineWidth=5;x.beginPath();x.moveTo(14,-229);x.quadraticCurveTo(39,-246,45,-224);x.stroke();x.shadowBlur=0;
 
  // fencing pose: sword hand forward, rear hand high.
@@ -308,7 +312,7 @@ function drawRapier(a,enemy,px,ground,s){
  let ang=high?-.10:.02;
  if((a.guardPose||0)>0)ang=a.guard==="high"?-.72:.55;
  x.save();x.translate(swordX,swordY);x.rotate(ang);
- x.strokeStyle="#ffcf38";x.shadowColor="#ffcf38";x.shadowBlur=8;x.lineWidth=4;x.beginPath();x.arc(2,0,11,0,Math.PI*2);x.stroke();
+ x.strokeStyle="#fff05c";x.shadowColor="#ff38df";x.shadowBlur=17;x.lineWidth=5;x.beginPath();x.arc(2,0,11,0,Math.PI*2);x.stroke();
  x.strokeStyle="#4a2b27";x.lineWidth=7;x.beginPath();x.moveTo(-20,0);x.lineTo(4,0);x.stroke();
  if(atk){
    addWeaponTrail(a,swordX+Math.cos(ang)*8,swordY+Math.sin(ang)*8,
@@ -585,5 +589,17 @@ function loop(t){
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
 }
+let selectedWeapon="shield";
+const charSelect=document.getElementById("charSelect");
+function applyCharacterChoice(w){
+ selectedWeapon=w;P.weapon=w;
+ // 相手は別系統を出す。レイピア選択時は刀、それ以外はレイピア。
+ E.weapon=w==="rapier"?"katana":"rapier";
+ P.guard="mid";P.aim="mid";E.guard="mid";E.aim="mid";
+ P.guardPose=0;E.guardPose=0;P.atk=null;E.atk=null;
+ if(charSelect)charSelect.classList.add("hide");
+ reset();
+}
+document.querySelectorAll("[data-char]").forEach(b=>b.addEventListener("click",()=>applyCharacterChoice(b.dataset.char)));
 function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield",guardKick:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0});over=false;sparks.length=0;weaponTrails.length=0;impacts.length=0;say("再戦！")}
 say("盾閃　開始");requestAnimationFrame(loop);
