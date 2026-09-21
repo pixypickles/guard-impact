@@ -46,7 +46,7 @@ function resolve(a,b){
  if(b.weapon==="katana" && !q.special && nowGuard){
    if(just){
      // ジャストガードは受け流し斬り。攻撃を弾き、そのまま即反撃。
-     a.stun=.42;a.atk=null;a.step=-a.face*.012;
+     sparkGuard(b,q.height,true);q.deflected=true;q.deflectT=.20;a.stun=.42;a.step=-a.face*.012;
      b.flash=1;b.riposte=.28;
      b.m=Math.min(100,b.m+24);
      a.hp-=q.type==="small"?9:14;
@@ -55,6 +55,7 @@ function resolve(a,b){
      return;
    }
    let chip=q.type==="small"?.5:1;
+   sparkGuard(b,q.height,false);q.deflected=true;q.deflectT=.16;
    b.hp-=chip;b.flash=.35;
    b.m=Math.min(100,b.m+(q.type==="small"?10:17));
    say("刀受け -"+chip);
@@ -62,21 +63,21 @@ function resolve(a,b){
    // ガード不能は刀の自動受けも貫通。ジャストだけ防げる。
    if(just){
      if(b.weapon==="katana"){
-       a.stun=.60;a.atk=null;a.step=-a.face*.018;b.riposte=.32;
+       sparkGuard(b,q.height,true);q.deflected=true;q.deflectT=.24;a.stun=.60;a.step=-a.face*.018;b.riposte=.32;
        b.m=Math.min(100,b.m+30);
        a.hp-=16;b.flash=1;say("受け流し斬り！");
      }else{
-       b.m=Math.min(100,b.m+30);a.stun=.65;a.atk=null;a.step=-a.face*.018;b.flash=1;say("JUST GUARD! よろけ！");
+       sparkGuard(b,q.height,true);q.deflected=true;q.deflectT=.24;b.m=Math.min(100,b.m+30);a.stun=.65;a.step=-a.face*.018;b.flash=1;say("JUST GUARD! よろけ！");
      }
      return;
    }
    b.hp-=32;b.flash=1;say("ガード不能！");
  }else if(nowGuard){
    if(just){
-     b.m=Math.min(100,b.m+24);a.stun=.48;a.atk=null;a.step=-a.face*.014;b.flash=1;say("JUST GUARD! よろけ！");
+     sparkGuard(b,q.height,true);q.deflected=true;q.deflectT=.20;b.m=Math.min(100,b.m+24);a.stun=.48;a.step=-a.face*.014;b.flash=1;say("JUST GUARD! よろけ！");
      return;
    }
-   b.m=Math.min(100,b.m+(q.type==="small"?13:22));b.flash=.6;say("ガード");
+   sparkGuard(b,q.height,false);q.deflected=true;q.deflectT=.16;b.m=Math.min(100,b.m+(q.type==="small"?13:22));b.flash=.6;say("ガード");
  }else{
    b.hp-=q.type==="small"?9:16;b.flash=1;say(q.height==="high"?"上段 HIT":"中段 HIT");
  }
@@ -101,6 +102,8 @@ function update(a,dt){
  if(a.stun>0){a.atk=null}
  if(a.atk){
    a.atk.t+=dt;
+   if(a.atk.deflectT!=null){a.atk.deflectT-=dt;if(a.atk.deflectT<=0)a.atk=null}
+   if(!a.atk){a.x=Math.max(.12,Math.min(.88,a.x));return}
    let dur=(a.atk.special?.95:a.atk.type==="small"?.55:.75)*(a.atk.speed||1);
    if(a.atk.type!=="small"){
      // 大攻撃の前半で相手方向へ実際に一歩進む
@@ -158,6 +161,7 @@ function drawKatana(a,enemy,px,ground,s){
    else {ang=.42-sw*.68;h1x=34+sw*34;h1y=-132}
    h2x=h1x-18;h2y=h1y+9;
  }else if(a.guard==="high"){ang=-.55;h1y=-154;h2y=-139}
+ if(atk&&atk.deflected){let r=Math.max(0,(atk.deflectT||0)/.24);ang-=.62*r;h1x-=10*r;h2x-=8*r;}
 
  // both arms to the two hands
  x.strokeStyle="#c79467";x.lineWidth=11;x.lineCap="round";
@@ -274,6 +278,7 @@ function drawFighter(a,enemy=false){
  x.beginPath();x.moveTo(shoulderX,shoulderY);x.lineTo(handX,handY);x.stroke();
 
  // hand + sword
+ if(atk&&atk.deflected){let r=Math.max(0,(atk.deflectT||0)/.24);bladeAng-=.52*r;handX-=8*r;}
  x.save();x.translate(handX,handY);x.rotate(bladeAng);
  let bladeLen=78;
  let bladeDir=1;
@@ -329,9 +334,9 @@ function loop(t){
  x.fillStyle="#57452f";x.fillRect(0,H*.58,W,H*.42);
  // distant battlements
  x.fillStyle="#66543c";for(let i=0;i<W;i+=90){x.fillRect(i,H*.43,70,H*.15);x.fillRect(i,H*.40,18,H*.04);x.fillRect(i+45,H*.40,18,H*.04)}
- drawFighter(P);drawFighter(E,true);
+ drawFighter(P);drawFighter(E,true);drawSparks(dt);
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
 }
-function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield"});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0});over=false;say("再戦！")}
+function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield"});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0});over=false;sparks.length=0;say("再戦！")}
 say("盾閃　開始");requestAnimationFrame(loop);
