@@ -34,7 +34,8 @@ addEventListener("keyup",e=>{let m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:
 let sparks=[];
 function sparkGuard(b,height,strong=false){
  let s=Math.min(W,H)/520;
- let px=b.x*W+b.face*(b.weapon==="katana"?-28:-34)*s;
+ // 火花も防御者の中心ではなく、攻撃者側の前面へ出す。
+ let px=b.x*W+b.face*(b.weapon==="katana"?-43:-49)*s;
  let py=H*.60-(height==="high"?155:125)*s;
  let n=strong?18:11;
  for(let i=0;i<n;i++){
@@ -57,7 +58,12 @@ function resolve(a,b){
  let speed=q.speed||1;
  let impact=(q.special?.58:q.type==="small"?.28:.42)*speed;
  if(q.t<impact)return;q.hit=true;
- let dist=Math.abs(a.x-b.x), range=q.special?.37:q.type==="small"?.28:.32;
+ // 当たり判定はキャラ中心ではなく「相手の身体の手前側」で取る。
+ // 攻撃者から見て相手の前面ぶんを差し引き、武器が身体の奥へ入る前に接触する。
+ let centerDist=Math.abs(a.x-b.x);
+ let bodyFront=.045;
+ let dist=Math.max(0,centerDist-bodyFront);
+ let range=q.special?.37:q.type==="small"?.28:.32;
  if(dist>range)return;
  let nowGuard=b.guard===q.height;
  let just=(b.just||0)>0;
@@ -346,7 +352,7 @@ function loop(t){
  update(P,dt);update(E,dt);
  // キャラ同士の当たり判定。プレイヤーは常に左、CPUは常に右。
  // 接触したら互いを押し戻し、すれ違い・位置の入れ替わりを禁止する。
- const minGap=.20;
+ const minGap=.215;
  if(E.x-P.x<minGap){
    const mid=(P.x+E.x)/2;
    P.x=mid-minGap/2;
