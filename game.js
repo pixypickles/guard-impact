@@ -4,36 +4,40 @@ document.addEventListener("dragstart",e=>e.preventDefault(),{passive:false});
 const c=document.querySelector("#game"),x=c.getContext("2d");
 const $=s=>document.querySelector(s); let W,H,last=0,msgT=1.5;
 function resize(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);W=innerWidth;H=innerHeight} addEventListener("resize",resize);resize();
-const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0,stun:0,weapon:"shield",guardKick:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0};
-let over=false, hold={small:0,heavy:0}, taps={left:0,right:0};
+const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,moveDir:0,guardActive:false,flash:0,stun:0,weapon:"shield",guardKick:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0};
+let over=false,started=false,hold={attack:0},freeze=0;
 function say(t){$("#msg").textContent=t;msgT=1.1}
 function attack(a,type,charged=false){
  if(over||a.atk||(a.stun||0)>0)return;
+ a.guardActive=false;
  let special=charged&&a.m>=100;
  if(special)a.m=0;
  a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:a.weapon==="katana"?.85:1};
 }
-function releaseAttack(type){let d=performance.now()-(hold[type]||performance.now());hold[type]=0;attack(P,type,d>380)}
+function releaseAttack(){if(!hold.attack)return;let d=performance.now()-hold.attack;hold.attack=0;attack(P,d>=380?"heavy":"small",d>=700)}
 function guardSet(a,g){a.guard=g}
 function step(a,dir){if((a.stun||0)>0)return;a.step=dir*.055}
 function input(act,down){
  if(over&&down){reset();return}
- if(act==="up"&&down){P.aim="high";guardSet(P,"high");P.just=.11}
- if(act==="down"&&down){P.aim="mid";guardSet(P,"mid");P.just=.11}
- if((act==="left"||act==="right")&&down){let now=performance.now(); if(now-taps[act]<280)step(P,act==="left"?-1:1);taps[act]=now}
- if((act==="small"||act==="heavy")){if(down)hold[act]=performance.now();else releaseAttack(act)}
+ if(act==="up"&&down){P.aim="high";guardSet(P,"high");$("#stance").textContent="構え：上段"}
+ if(act==="down"&&down){P.aim="mid";guardSet(P,"mid");$("#stance").textContent="構え：中段"}
+ if(act==="left"||act==="right")P.moveDir=down?(act==="left"?-1:1):0;
+ if(act==="guard"){P.guardActive=down;if(down){P.just=.13;P.atk=null;hold.attack=0}}
+ if(act==="attack"){if(down)hold.attack=performance.now();else releaseAttack()}
 }
-document.querySelectorAll("button").forEach(b=>{
+document.querySelectorAll(".controls button").forEach(b=>{
  let a=b.dataset.act;
  b.addEventListener("pointerdown",e=>{e.preventDefault();b.setPointerCapture(e.pointerId);b.classList.add("pressed");input(a,true)});
  b.addEventListener("pointerup",e=>{b.classList.remove("pressed");input(a,false)});
- b.addEventListener("pointercancel",e=>{b.classList.remove("pressed");if(a==="small"||a==="heavy")hold[a]=0});
+ b.addEventListener("pointercancel",e=>{b.classList.remove("pressed");if(a==="attack")hold.attack=0;else if(a==="guard")P.guardActive=false;else if(a==="left"||a==="right")P.moveDir=0});
 });
-addEventListener("keydown",e=>{if(e.repeat)return;let m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",z:"guard",x:"small",c:"heavy"};if(m[e.key])input(m[e.key],true)});
-addEventListener("keyup",e=>{let m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",z:"guard",x:"small",c:"heavy"};if(m[e.key])input(m[e.key],false)});
+addEventListener("keydown",e=>{if(e.repeat)return;let m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",z:"guard",x:"attack",c:"attack"};if(m[e.key])input(m[e.key],true)});
+addEventListener("keyup",e=>{let m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",z:"guard",x:"attack",c:"attack"};if(m[e.key])input(m[e.key],false)});
+$("#start").addEventListener("click",()=>{started=true;$("#splash").classList.add("hide");say("FIGHT!")});
 let sparks=[];
 let impacts=[];
 function hitImpact(b,height,strong=false){
+ freeze=Math.max(freeze,strong?.09:.055);if(navigator.vibrate)navigator.vibrate(strong?[20,18,28]:12);
  let s=Math.min(W,H)/520,px=b.x*W-b.face*44*s,py=H*.60-(height==="high"?150:112)*s;
  impacts.push({x:px,y:py,t:0,life:strong?.24:.18,strong});
  let n=strong?13:8;
@@ -49,6 +53,7 @@ function drawImpacts(dt){
    x.beginPath();x.arc(p.x,p.y,r,0,Math.PI*2);x.stroke();}x.restore();}
 }
 function sparkGuard(b,height,strong=false){
+ freeze=Math.max(freeze,strong?.075:.04);if(navigator.vibrate)navigator.vibrate(strong?[16,16,22]:9);
  let s=Math.min(W,H)/520;
  // 火花も防御者の中心ではなく、攻撃者側の前面へ出す。
  let px=b.x*W+b.face*(b.weapon==="katana"?-43:-49)*s;
@@ -89,8 +94,8 @@ function resolve(a,b){
  let dist=Math.max(0,centerDist-bodyFront);
  let range=q.special?.385:q.type==="small"?.305:.345;
  if(dist>range)return;
- let nowGuard=b.guard===q.height;
- let just=(b.just||0)>0;
+ let nowGuard=b.guard===q.height&&(b===P?b.guardActive:(b.guardPose||0)>0);
+ let just=nowGuard&&(b.just||0)>0;
 
  // 刀キャラ: 刀を両手で構え、同じ高さの通常攻撃は自動受け。
  // 完全防御ではなく少量の削りダメージを受ける。
@@ -162,6 +167,7 @@ function update(a,dt){
  let oldGK=a.guardKick||0;a.guardKick=Math.max(0,oldGK-dt);
  if(oldGK>0)a.x-=a.face*dt*.018;
  if(a.step){a.x+=a.step;a.step*=.72;if(Math.abs(a.step)<.002)a.step=0}
+ if(a.moveDir&&!a.atk&&!a.guardActive&&a.stun<=0)a.x+=a.moveDir*dt*.22;
  if(a.stun>0){a.atk=null}
  if(a.atk){
    a.atk.t+=dt;
@@ -423,6 +429,7 @@ function drawFighter(a,enemy=false){
 }
 function loop(t){
  let dt=Math.min(.033,(t-last)/1000||0);last=t;
+ if(!started)dt=0;if(freeze>0){freeze=Math.max(0,freeze-dt);dt=0}
  update(P,dt);update(E,dt);
  // キャラ同士の当たり判定。プレイヤーは常に左、CPUは常に右。
  // 接触したら互いを押し戻し、すれ違い・位置の入れ替わりを禁止する。
@@ -449,5 +456,5 @@ function loop(t){
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
 }
-function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"shield",guardKick:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0});over=false;sparks.length=0;impacts.length=0;say("再戦！")}
+function reset(){Object.assign(P,{x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,moveDir:0,guardActive:false,stun:0,weapon:"shield",guardKick:0});Object.assign(E,{x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,step:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0});over=false;sparks.length=0;impacts.length=0;$("#stance").textContent="構え：中段";say("再戦！")}
 say("盾閃　開始");requestAnimationFrame(loop);
