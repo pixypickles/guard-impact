@@ -69,6 +69,13 @@ function drawSparks(dt){
   x.beginPath();x.moveTo(p.x,p.y);x.lineTo(p.x-p.vx*.025,p.y-p.vy*.025);x.stroke();x.restore();
  }
 }
+function interruptHeavy(defender,attack){
+ if(attack.type==="small" && defender.atk && defender.atk.type==="heavy"){
+   defender.atk=null;defender.stun=Math.max(defender.stun||0,.24);
+   defender.step=-defender.face*.010;return true;
+ }
+ return false;
+}
 function resolve(a,b){
  let q=a.atk;if(!q||q.hit)return;
  let speed=q.speed||1;
@@ -87,7 +94,7 @@ function resolve(a,b){
 
  // 刀キャラ: 刀を両手で構え、同じ高さの通常攻撃は自動受け。
  // 完全防御ではなく少量の削りダメージを受ける。
- if(b.weapon==="katana" && !q.special && nowGuard){
+ if(b.weapon==="katana" && !q.special && nowGuard && (b.guardPose||0)>0){
    if(just){
      // ジャストガードは受け流し斬り。攻撃を弾き、そのまま即反撃。
      sparkGuard(b,q.height,true);b.guardKick=.16;b.guardPose=.24;q.deflected=true;q.deflectT=.20;a.stun=.42;a.step=-a.face*.012;
@@ -126,8 +133,10 @@ function resolve(a,b){
    }
    sparkGuard(b,q.height,false);b.guardKick=.11;q.deflected=true;q.deflectT=.16;b.m=Math.min(100,b.m+(q.type==="small"?13:22));b.flash=.6;say("ガード");
  }else{
+   let interrupted=interruptHeavy(b,q);
    hitImpact(b,q.height,q.type!=="small");b.guardKick=q.type==="small"?.07:.11;
-   b.hp-=q.type==="small"?9:16;b.flash=1;say(q.height==="high"?"上段 HIT":"中段 HIT");
+   b.hp-=q.type==="small"?9:16;b.flash=1;
+   say(interrupted?"小攻撃で大攻撃を潰した！":(q.height==="high"?"上段 HIT":"中段 HIT"));
  }
  if(b.hp<=0){b.hp=0;over=true;say(a===P?"勝利！ TAPで再戦":"敗北… TAPで再戦")}
 }
@@ -136,15 +145,12 @@ function ai(dt){
  cpu-=dt;if(cpu>0||over||E.stun>0)return;cpu=.22+Math.random()*.5;
  let d=Math.abs(P.x-E.x);
  if(P.atk){
-   // 刀は攻撃方向へ自動的に刀を合わせる。
-   // 受け姿勢は接触後ではなく、攻撃を認識した時点から先行して作る。
-   E.guard=P.atk.height;
-   let sp=P.atk.speed||1;
-   let impact=(P.atk.special?.58:P.atk.type==="small"?.28:.42)*sp;
-   if(impact-P.atk.t>.025){
-     E.guardPose=Math.max(E.guardPose||0,P.atk.height==="high"?.34:.25);
+   // オートガード廃止。CPUが防御を選んだ時だけ刀を攻撃線へ合わせる。
+   if(Math.random()<.34){
+     E.guard=P.atk.height;
+     E.guardPose=Math.max(E.guardPose||0,P.atk.height==="high"?.28:.22);
+     if(Math.random()<(P.atk.special?.24:.14))E.just=.11;
    }
-   if(Math.random()<(P.atk.special?.38:.24))E.just=.11;
  }
  else if(d>.43)step(E,-1);
  else if(d<.36)step(E,1); else if(Math.random()<.16)step(E,Math.random()<.5?-1:1);
@@ -428,7 +434,11 @@ function loop(t){
    P.step=Math.min(0,P.step);
    E.step=Math.max(0,E.step);
  }
- ai(dt);resolve(P,E);resolve(E,P);
+ ai(dt);
+ if(P.atk&&E.atk&&P.atk.type!==E.atk.type){
+   if(P.atk.type==="small"){resolve(P,E);resolve(E,P)}
+   else{resolve(E,P);resolve(P,E)}
+ }else{resolve(P,E);resolve(E,P);}
  if(msgT>0){msgT-=dt;if(msgT<=0&&!over)$("#msg").textContent=""}
  x.clearRect(0,0,W,H);
  let g=x.createLinearGradient(0,0,0,H*.62);g.addColorStop(0,"#301a5b");g.addColorStop(1,"#d24b7f");x.fillStyle=g;x.fillRect(0,0,W,H*.62);
