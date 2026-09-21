@@ -175,10 +175,27 @@ function update(a,dt){
  a.x=Math.max(.12,Math.min(.88,a.x));a.flash=Math.max(0,a.flash-dt*3);a.just=Math.max(0,(a.just||0)-dt);
 }
 function techTrim(kind){
- x.save();x.globalAlpha=.85;x.strokeStyle=kind==="katana"?"#c86cff":"#57ddff";x.lineWidth=2;
- x.shadowColor=x.strokeStyle;x.shadowBlur=6;
- x.beginPath();x.moveTo(-27,-105);x.lineTo(0,-111);x.lineTo(27,-105);x.stroke();
- x.beginPath();x.moveTo(-22,-88);x.lineTo(22,-88);x.stroke();
+ let kat=kind==="katana", c1=kat?"#73ff39":"#00f6ff", c2=kat?"#ff2bd6":"#ffe43b";
+ x.save();x.globalAlpha=.98;x.lineCap="round";
+ // glowing lamellar bands
+ x.shadowColor=c1;x.shadowBlur=15;x.strokeStyle=c1;x.lineWidth=3;
+ x.beginPath();x.moveTo(-29,-158);x.lineTo(28,-158);x.moveTo(-30,-143);x.lineTo(29,-143);x.moveTo(-29,-128);x.lineTo(28,-128);x.stroke();
+ // angular chest circuitry / ancient armor motif
+ x.shadowColor=c2;x.shadowBlur=12;x.strokeStyle=c2;x.lineWidth=2.5;
+ x.beginPath();x.moveTo(-28,-112);x.lineTo(-12,-123);x.lineTo(0,-114);x.lineTo(13,-124);x.lineTo(28,-112);x.stroke();
+ // shoulder edge glows
+ x.shadowColor=c1;x.shadowBlur=12;x.strokeStyle=c1;x.lineWidth=3;
+ x.beginPath();x.moveTo(-50,-163);x.lineTo(-50,-126);x.moveTo(49,-163);x.lineTo(49,-126);x.stroke();
+ x.shadowBlur=0;x.restore();
+}
+function neonHelmet(kind){
+ let kat=kind==="katana", c1=kat?"#73ff39":"#00f6ff", c2=kat?"#ff2bd6":"#ffe43b";
+ x.save();x.globalAlpha=.95;x.lineCap="round";
+ x.shadowColor=c1;x.shadowBlur=14;x.strokeStyle=c1;x.lineWidth=3;
+ x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.stroke();
+ x.beginPath();x.moveTo(-21,-202);x.lineTo(21,-202);x.stroke();
+ x.shadowColor=c2;x.shadowBlur=12;x.strokeStyle=c2;x.lineWidth=3;
+ x.beginPath();x.moveTo(0,-224);x.lineTo(kind==="katana"?6:-7,-250);x.stroke();
  x.shadowBlur=0;x.restore();
 }
 function drawKatana(a,enemy,px,ground,s){
@@ -195,7 +212,7 @@ function drawKatana(a,enemy,px,ground,s){
  x.fillStyle="#0a0d1588";x.beginPath();x.ellipse(0,10,55,12,0,0,Math.PI*2);x.fill();
  // legs / lighter armor
  // 刀兵の脚：腰から自然に出し、膝を曲げて前後に開く。
- x.strokeStyle="#242238";x.lineCap="round";
+ x.strokeStyle="#26104d";x.shadowColor="#ff2bd6";x.shadowBlur=7;x.lineCap="round";
  let kh=heavyPose*9, ks=heavyPose*13;
  x.lineWidth=14;
  x.beginPath();x.moveTo(-12,-64+kh);x.lineTo(-23-ks*.45,-36+kh);x.lineTo(-31-ks*.65,-2);x.stroke();
@@ -203,16 +220,17 @@ function drawKatana(a,enemy,px,ground,s){
  x.lineWidth=11;
  x.beginPath();x.moveTo(-31-ks*.55,-2);x.lineTo(-43-ks*.6,2);x.stroke();
  x.beginPath();x.moveTo(35+ks*1.4,-2);x.lineTo(48+ks*1.5,2);x.stroke();
- x.lineCap="butt";
- x.fillStyle="#72502e";for(let i=-2;i<=2;i++)x.fillRect(i*12-5,-104,10,46);
- x.fillStyle="#514536";x.beginPath();x.moveTo(-34,-168);x.lineTo(33,-168);x.lineTo(28,-98);x.lineTo(-28,-98);x.closePath();x.fill();
- x.strokeStyle="#b99350";x.lineWidth=4;for(let yy=-156;yy<-108;yy+=14){x.beginPath();x.moveTo(-28,yy);x.lineTo(27,yy);x.stroke()}
- techTrim("katana");
+ x.lineCap="butt";x.shadowBlur=0;
+ x.fillStyle="#ff5a1f";for(let i=-2;i<=2;i++)x.fillRect(i*12-5,-104,10,46);
+ x.fillStyle="#35104f";x.beginPath();x.moveTo(-34,-168);x.lineTo(33,-168);x.lineTo(28,-98);x.lineTo(-28,-98);x.closePath();x.fill();
+ x.strokeStyle="#73ff39";x.shadowColor="#73ff39";x.shadowBlur=8;x.lineWidth=4;for(let yy=-156;yy<-108;yy+=14){x.beginPath();x.moveTo(-28,yy);x.lineTo(27,yy);x.stroke()}
+ x.shadowBlur=0;techTrim("katana");
  // head/helmet + visible eye dot
  x.fillStyle="#c79467";x.beginPath();x.arc(0,-193,19,0,Math.PI*2);x.fill();
  x.fillStyle="#1d1713";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
- x.fillStyle="#493c2e";x.beginPath();x.arc(0,-201,23,Math.PI,Math.PI*2);x.fill();x.fillRect(-23,-202,46,9);
+ x.fillStyle="#5a146e";x.beginPath();x.arc(0,-201,23,Math.PI,Math.PI*2);x.fill();x.fillRect(-23,-202,46,9);
  x.strokeStyle="#a82f25";x.lineWidth=6;x.beginPath();x.moveTo(0,-223);x.lineTo(6,-246);x.stroke();
+ neonHelmet("katana");
 
  // 両手持ち。通常構えは中段、上段入力/AI時は高く構える。
  let h1x=35,h1y=-143,h2x=18,h2y=-132,ang=-.08;
@@ -241,17 +259,17 @@ function drawKatana(a,enemy,px,ground,s){
  if(atk&&atk.deflected){let r=Math.max(0,(atk.deflectT||0)/.24);ang-=.20*r;h1x-=4*r;h2x-=3*r;}
 
  // both arms to the two hands
- x.strokeStyle="#c79467";x.lineWidth=11;x.lineCap="round";
+ x.strokeStyle="#ff8a5c";x.shadowColor="#ff2bd6";x.shadowBlur=5;x.lineWidth=11;x.lineCap="round";
  x.beginPath();x.moveTo(29,-153);x.lineTo(h1x,h1y);x.stroke();
  x.beginPath();x.moveTo(-25,-151);x.lineTo(h2x,h2y);x.stroke();
 
  // katana handle + blade
  x.save();x.translate(h1x,h1y);x.rotate(ang);
- x.strokeStyle="#30261f";x.lineWidth=10;x.beginPath();x.moveTo(-25,0);x.lineTo(8,0);x.stroke();
- x.strokeStyle="#b18a45";x.lineWidth=9;x.beginPath();x.moveTo(8,-10);x.lineTo(8,10);x.stroke();
+ x.shadowBlur=0;x.strokeStyle="#120d1e";x.lineWidth=10;x.beginPath();x.moveTo(-25,0);x.lineTo(8,0);x.stroke();
+ x.strokeStyle="#ffe43b";x.shadowColor="#ffe43b";x.shadowBlur=10;x.lineWidth=9;x.beginPath();x.moveTo(8,-10);x.lineTo(8,10);x.stroke();
  if(atk&&atk.special){x.shadowBlur=16;x.shadowColor="#ff3b18";x.strokeStyle="#ff7840";x.lineWidth=9;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
  x.lineTo(122,0);x.stroke();x.shadowBlur=0;x.shadowBlur=0}
- x.strokeStyle=(atk&&atk.special)?"#ffd27a":"#e8e3d6";x.lineWidth=6;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
+ x.strokeStyle=(atk&&atk.special)?"#fff2a8":"#aaff66";x.shadowColor=(atk&&atk.special)?"#ff285d":"#39ff14";x.shadowBlur=(atk&&atk.special)?26:22;x.lineWidth=6;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
  x.lineTo(122,0);x.stroke();x.shadowBlur=0;
  x.restore();
  x.lineCap="butt";
@@ -286,7 +304,7 @@ function drawFighter(a,enemy=false){
  // legs / boots
  // 通常時も大攻撃時も同じ「関節のある脚」を使う。
  // 大攻撃ではこの姿勢のまま膝を深く曲げ、前脚を相手側へさらに出す。
- x.strokeStyle=enemy?"#29263f":"#172738";
+ x.strokeStyle=enemy?"#4a153e":"#102d59";x.shadowColor=enemy?"#ff2bd6":"#00f6ff";x.shadowBlur=6;
  x.lineCap="round";
  let legDrop=heavyPose*7;
  let backKneeX=-23-heavyPose*5;
@@ -299,19 +317,20 @@ function drawFighter(a,enemy=false){
  x.lineWidth=12;
  x.beginPath();x.moveTo(backFootX,-2);x.lineTo(backFootX-12,2);x.stroke();
  x.beginPath();x.moveTo(frontFootX,-2);x.lineTo(frontFootX+13,2);x.stroke();
- x.lineCap="butt";
+ x.lineCap="butt";x.shadowBlur=0;
  // lamellar skirt
- x.fillStyle=enemy?"#8a6233":"#6f2e27";for(let i=-2;i<=2;i++)x.fillRect(i*13-6,-105,11,48);
+ x.fillStyle=enemy?"#ff5a1f":"#b51cff";for(let i=-2;i<=2;i++)x.fillRect(i*13-6,-105,11,48);
  // torso armor
- x.fillStyle=enemy?"#6d593d":"#38464b";x.beginPath();x.moveTo(-38,-170);x.lineTo(35,-170);x.lineTo(29,-95);x.lineTo(-30,-95);x.closePath();x.fill();
- x.strokeStyle="#c29b57";x.lineWidth=4;for(let yy=-158;yy<-105;yy+=14){x.beginPath();x.moveTo(-31,yy);x.lineTo(29,yy);x.stroke()}
+ x.fillStyle=enemy?"#6b174f":"#123b68";x.beginPath();x.moveTo(-38,-170);x.lineTo(35,-170);x.lineTo(29,-95);x.lineTo(-30,-95);x.closePath();x.fill();
+ x.strokeStyle="#ffe43b";x.shadowColor="#ffe43b";x.shadowBlur=7;x.lineWidth=4;for(let yy=-158;yy<-105;yy+=14){x.beginPath();x.moveTo(-31,yy);x.lineTo(29,yy);x.stroke()}
  // shoulder plates
- x.fillStyle=enemy?"#6d593d":"#303a3e";x.fillRect(-53,-165,22,42);x.fillRect(31,-165,22,42);
- techTrim("shield");
+ x.fillStyle=enemy?"#8a195c":"#164d7d";x.fillRect(-53,-165,22,42);x.fillRect(31,-165,22,42);
+ x.shadowBlur=0;techTrim("shield");
  // head + helmet
  x.fillStyle="#c79467";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#211810";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
- x.fillStyle=enemy?"#665033":"#2d3639";x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.fill();x.fillRect(-24,-203,48,10);
+ x.fillStyle=enemy?"#71154f":"#173b69";x.beginPath();x.arc(0,-202,24,Math.PI,Math.PI*2);x.fill();x.fillRect(-24,-203,48,10);
  x.strokeStyle="#a82f25";x.lineWidth=7;x.beginPath();x.moveTo(0,-224);x.lineTo(-7,-250);x.stroke();
+ neonHelmet("shield");
  // sword arm
  // 肩を支点にする。小攻撃の中段は突き、大攻撃の中段は肩から円弧を描く横薙ぎ。
  let atk=a.atk;
@@ -386,14 +405,14 @@ function drawFighter(a,enemy=false){
    else{x.moveTo(-14,0);x.lineTo(-14-bladeLen,0);}
    x.stroke();x.restore();
  }
- x.strokeStyle=(atk&&atk.special)?"#ffd27a":"#e5dfca";x.lineWidth=7;x.beginPath();
+ x.shadowColor=(atk&&atk.special)?"#ff285d":"#00f6ff";x.shadowBlur=(atk&&atk.special)?26:20;x.strokeStyle=(atk&&atk.special)?"#fff0a8":"#b8ffff";x.lineWidth=7;x.beginPath();
  if(bladeDir>0){x.moveTo(14,0);x.lineTo(14+bladeLen,0);}
  else{x.moveTo(-14,0);x.lineTo(-14-bladeLen,0);}
  x.stroke();
  x.restore();
  x.lineCap="butt";
  // shield
- let sy=a.guard==="high"?-182:-126;x.fillStyle=enemy?"#7a5734":"#7a3028";x.strokeStyle="#d0a55d";x.lineWidth=5;x.beginPath();x.ellipse(-32,sy,31,43,0,0,Math.PI*2);x.fill();x.stroke();x.beginPath();x.arc(-32,sy,8,0,Math.PI*2);x.fillStyle="#d0a55d";x.fill();
+ let sy=a.guard==="high"?-182:-126;x.save();x.fillStyle=enemy?"#6b124f":"#4b147f";x.strokeStyle="#00f6ff";x.shadowColor="#00f6ff";x.shadowBlur=18;x.lineWidth=6;x.beginPath();x.ellipse(-32,sy,31,43,0,0,Math.PI*2);x.fill();x.stroke();x.shadowColor="#ffe43b";x.shadowBlur=14;x.beginPath();x.arc(-32,sy,9,0,Math.PI*2);x.fillStyle="#ffe43b";x.fill();x.restore();
  x.restore();
 }
 function loop(t){
@@ -412,10 +431,10 @@ function loop(t){
  ai(dt);resolve(P,E);resolve(E,P);
  if(msgT>0){msgT-=dt;if(msgT<=0&&!over)$("#msg").textContent=""}
  x.clearRect(0,0,W,H);
- let g=x.createLinearGradient(0,0,0,H*.62);g.addColorStop(0,"#8e7650");g.addColorStop(1,"#c3a36b");x.fillStyle=g;x.fillRect(0,0,W,H*.62);
- x.fillStyle="#57452f";x.fillRect(0,H*.58,W,H*.42);
+ let g=x.createLinearGradient(0,0,0,H*.62);g.addColorStop(0,"#301a5b");g.addColorStop(1,"#d24b7f");x.fillStyle=g;x.fillRect(0,0,W,H*.62);
+ x.fillStyle="#17162b";x.fillRect(0,H*.58,W,H*.42);
  // distant battlements
- x.fillStyle="#66543c";for(let i=0;i<W;i+=90){x.fillRect(i,H*.43,70,H*.15);x.fillRect(i,H*.40,18,H*.04);x.fillRect(i+45,H*.40,18,H*.04)}
+ x.fillStyle="#28213d";for(let i=0;i<W;i+=90){x.fillRect(i,H*.43,70,H*.15);x.fillRect(i,H*.40,18,H*.04);x.fillRect(i+45,H*.40,18,H*.04)}
  drawFighter(P);drawFighter(E,true);drawSparks(dt);drawImpacts(dt);
  $("#php").style.width=P.hp+"%";$("#ehp").style.width=E.hp+"%";$("#pm").style.width=P.m+"%";$("#em").style.width=E.m+"%";
  requestAnimationFrame(loop)
