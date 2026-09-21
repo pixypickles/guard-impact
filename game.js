@@ -227,7 +227,11 @@ function updateWeaponTrails(dt){
  for(let i=weaponTrails.length-1;i>=0;i--){let p=weaponTrails[i];p.t+=dt;if(p.t>=p.life)weaponTrails.splice(i,1);}
 }
 function drawWeaponTrails(){
- x.save();x.lineCap="round";
+ x.save();
+ // 残像はゲームcanvasの絶対描画座標で保存しているため、親の変換を確実に解除。
+ x.setTransform(1,0,0,1,0,0);
+ x.beginPath();x.rect(0,0,W,H);x.clip();
+ x.lineCap="round";
  for(const p of weaponTrails){
   let k=1-p.t/p.life,s=Math.min(W,H)/520,ox=p.screen?0:p.a.x*W,oy=p.screen?0:H*.60;
   x.globalAlpha=k*(p.strong?.52:.34);
@@ -311,11 +315,12 @@ function drawKatana(a,enemy,px,ground,s){
  if(atk&&atk.special){x.shadowBlur=16;x.shadowColor="#ff3b18";x.strokeStyle="#ff7840";x.lineWidth=9;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
  x.lineTo(122,0);x.stroke();x.shadowBlur=0;x.shadowBlur=0}
  if(atk){
-  // 現在のCanvasは刀身を描くためのtranslate/scale/rotateがすべて適用済み。
-  // その変換をそのまま使い、刀身の実画面座標を取得する。
+  // 刀身を描いている現在の変換から「canvas内部座標」を直接取得。
+  // CSS表示サイズや方向キー領域の座標系は混ぜない。
   let tm=x.getTransform();
   let tp1=new DOMPoint(13,0).matrixTransform(tm);
   let tp2=new DOMPoint(122,0).matrixTransform(tm);
+  // getTransformの値はこのcanvasの描画座標そのものなので、そのまま残像へ渡す。
   addWeaponTrail(a,tp1.x,tp1.y,tp2.x,tp2.y,"katana",atk.type!=="small"||atk.special,true);
  }
  x.strokeStyle=(atk&&atk.special)?"#fff2a8":"#aaff66";x.shadowColor=(atk&&atk.special)?"#ff285d":"#39ff14";x.shadowBlur=(atk&&atk.special)?26:22;x.lineWidth=6;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
