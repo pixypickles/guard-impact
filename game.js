@@ -4,14 +4,14 @@ document.addEventListener("dragstart",e=>e.preventDefault(),{passive:false});
 const c=document.querySelector("#game"),x=c.getContext("2d");
 const $=s=>document.querySelector(s); let W,H,last=0,msgT=1.5;
 function resize(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);W=innerWidth;H=innerHeight} addEventListener("resize",resize);resize();
-const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0,stun:0,weapon:"shield",guardKick:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0,stun:0,weapon:"katana",riposte:0,guardKick:0,guardPose:0};
+const P={x:.18,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:1,step:0,flash:0,stun:0,weapon:"shield",guardKick:0}, E={x:.82,hp:100,m:0,guard:"mid",aim:"mid",atk:null,face:-1,step:0,flash:0,stun:0,weapon:"rapier",riposte:0,guardKick:0,guardPose:0};
 let over=false, hold={small:0,heavy:0}, taps={left:0,right:0};
 function say(t){$("#msg").textContent=t;msgT=1.1}
 function attack(a,type,charged=false){
  if(over||a.atk||(a.stun||0)>0)return;
  let special=charged&&a.m>=100;
  if(special)a.m=0;
- a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:a.weapon==="katana"?.85:1};
+ a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:a.weapon==="katana"?.85:a.weapon==="rapier"?.72:1};
 }
 function releaseAttack(type){let d=performance.now()-(hold[type]||performance.now());hold[type]=0;attack(P,type,d>380)}
 function guardSet(a,g){a.guard=g}
@@ -52,7 +52,7 @@ function drawImpacts(dt){
 function sparkGuard(b,height,strong=false){
  let s=Math.min(W,H)/520;
  // 火花も防御者の中心ではなく、攻撃者側の前面へ出す。
- let px=b.x*W+b.face*(b.weapon==="katana"?-43:-49)*s;
+ let px=b.x*W+b.face*(b.weapon==="katana"?-43:b.weapon==="rapier"?-38:-49)*s;
  let py=H*.60-(height==="high"?155:125)*s;
  let n=strong?18:11;
  for(let i=0;i<n;i++){
@@ -95,13 +95,29 @@ function resolve(a,b){
  // 攻撃者から見て相手の前面ぶんを差し引き、武器が身体の奥へ入る前に接触する。
  let centerDist=Math.abs(a.x-b.x);
  // 手前側の身体面を重要視。中心よりかなり前で武器接触を拾う。
- let bodyFront=b.weapon==="katana"?.072:.078;
+ let bodyFront=b.weapon==="katana"?.072:b.weapon==="rapier"?.068:.078;
  let dist=Math.max(0,centerDist-bodyFront);
  let range=q.special?.385:q.type==="small"?.305:.345;
  if(dist>range)return;
  let nowGuard=b.guard===q.height;
  let just=(b.just||0)>0;
 
+ // レイピア剣士: 選択した高さを剣で受ける。小-1 / 大-2の削り。
+ if(b.weapon==="rapier" && !q.special && nowGuard && (b.guardPose||0)>0){
+   if(just){
+     sparkGuard(b,q.height,true);contactShock(true);b.guardKick=.14;b.guardPose=.20;
+     q.deflected=true;q.deflectT=.20;blastToWall(a,-a.face,true);
+     b.m=Math.min(100,b.m+24);b.flash=.8;say("レイピア・パリィ！");
+     return;
+   }
+   let chip=q.type==="small"?1:2;
+   sparkGuard(b,q.height,false);contactShock(q.type!=="small");b.guardKick=.12;b.guardPose=.18;
+   q.deflected=true;q.deflectT=.15;blastToWall(a,-a.face,q.type!=="small");
+   b.hp-=chip;b.flash=.35;b.m=Math.min(100,b.m+(q.type==="small"?10:17));
+   say("剣受け -"+chip);
+   if(b.hp<=0){b.hp=0;over=true;say(a===P?"勝利！ TAPで再戦":"敗北… TAPで再戦")}
+   return;
+ }
  // 刀キャラ: 刀を両手で構え、同じ高さの通常攻撃は自動受け。
  // 完全防御ではなく少量の削りダメージを受ける。
  if(b.weapon==="katana" && !q.special && nowGuard && (b.guardPose||0)>0){
@@ -124,7 +140,11 @@ function resolve(a,b){
  }else if(q.special){
    // ガード不能は刀の自動受けも貫通。ジャストだけ防げる。
    if(just){
-     if(b.weapon==="katana"){
+     if(b.weapon==="rapier"){
+       sparkGuard(b,q.height,true);contactShock(true);b.guardKick=.16;b.guardPose=.24;
+       q.deflected=true;q.deflectT=.24;blastToWall(a,-a.face,true);
+       b.m=Math.min(100,b.m+30);b.flash=1;say("レイピア・パリィ！");
+     }else if(b.weapon==="katana"){
        sparkGuard(b,q.height,true);b.guardKick=.16;b.guardPose=.26;q.deflected=true;q.deflectT=.24;contactShock(true);blastToWall(a,-a.face,true);b.riposte=.32;
        b.m=Math.min(100,b.m+30);
        hitImpact(a,q.height,true);a.guardKick=.11;
@@ -159,7 +179,7 @@ function ai(dt){
    // オートガード廃止。CPUが防御を選んだ時だけ刀を攻撃線へ合わせる。
    if(Math.random()<.34){
      E.guard=P.atk.height;
-     E.guardPose=Math.max(E.guardPose||0,P.atk.height==="high"?.28:.22);
+     E.guardPose=Math.max(E.guardPose||0,E.weapon==="rapier"?.20:(P.atk.height==="high"?.28:.22));
      if(Math.random()<(P.atk.special?.24:.14))E.just=.11;
    }
  }
@@ -183,7 +203,7 @@ function update(a,dt){
    let dur=(a.atk.special?.95:a.atk.type==="small"?.55:.75)*(a.atk.speed||1);
    if(a.atk.type!=="small"){
      // 大攻撃の前半で相手方向へ実際に一歩進む
-     let target=.035, prev=a.atk.lungeDone||0;
+     let target=a.weapon==="rapier"?.105:.035, prev=a.atk.lungeDone||0;
      let phase=Math.min(1,a.atk.t/(dur*.42));
      let wanted=target*(1-Math.pow(1-phase,2));
      a.x+=a.face*(wanted-prev);
@@ -231,13 +251,68 @@ function drawWeaponTrails(){
  for(const p of weaponTrails){
   let k=1-p.t/p.life,s=Math.min(W,H)/520,ox=p.screen?0:p.a.x*W,oy=p.screen?0:H*.60;
   x.globalAlpha=k*(p.strong?.52:.34);
-  x.strokeStyle=p.kind==="katana"?"#7cff3a":"#71efff";
-  x.shadowColor=p.kind==="katana"?"#32ff00":"#00eaff";x.shadowBlur=p.strong?24:15;
+  x.strokeStyle=p.kind==="katana"?"#7cff3a":p.kind==="rapier"?"#ff8cf0":"#71efff";
+  x.shadowColor=p.kind==="katana"?"#32ff00":p.kind==="rapier"?"#ff32dc":"#00eaff";x.shadowBlur=p.strong?24:15;
   x.lineWidth=(p.strong?12:7)*k+2;
-  let fx=p.kind==="katana"?(p.a.face||1):1;
+  let fx=(p.kind==="katana"||p.kind==="rapier")?(p.a.face||1):1;
   x.beginPath();x.moveTo(ox+p.x1*s*fx,oy+p.y1*s);x.lineTo(ox+p.x2*s*fx,oy+p.y2*s);x.stroke();
  }
  x.restore();
+}
+function drawRapier(a,enemy,px,ground,s){
+ if(shake>0)px+=Math.sin(performance.now()*.12)*shake*.45;
+ let atk=a.atk,heavy=atk&&atk.type!=="small"?Math.sin(Math.min(1,atk.t/((atk.special?.95:.75)*(atk.speed||1)))*Math.PI):0;
+ let gk=Math.min(1,(a.guardKick||0)/.16);
+ x.save();x.translate(px-a.face*gk*7*s,ground+heavy*5*s);x.scale(a.face*s,s);
+ if(gk>0)x.rotate(-.05*gk);
+ // shadow + fencing legs
+ x.fillStyle="#0a0d1588";x.beginPath();x.ellipse(0,10,56,12,0,0,Math.PI*2);x.fill();
+ x.strokeStyle="#28123f";x.shadowColor="#ff48dc";x.shadowBlur=7;x.lineCap="round";x.lineWidth=14;
+ x.beginPath();x.moveTo(-10,-67);x.lineTo(-27,-36);x.lineTo(-40,-2);x.stroke();
+ x.beginPath();x.moveTo(10,-67);x.lineTo(30+heavy*17,-37);x.lineTo(46+heavy*30,-2);x.stroke();
+ x.lineWidth=10;x.beginPath();x.moveTo(-40,-2);x.lineTo(-53,2);x.moveTo(46+heavy*30,-2);x.lineTo(60+heavy*34,2);x.stroke();
+ x.shadowBlur=0;x.lineCap="butt";
+ // long musketeer coat
+ x.fillStyle="#30205c";x.beginPath();x.moveTo(-34,-169);x.lineTo(33,-169);x.lineTo(29,-96);x.lineTo(15,-72);x.lineTo(0,-99);x.lineTo(-17,-72);x.lineTo(-30,-96);x.closePath();x.fill();
+ x.strokeStyle="#ffcf38";x.shadowColor="#ffcf38";x.shadowBlur=8;x.lineWidth=3;
+ x.beginPath();x.moveTo(0,-166);x.lineTo(0,-103);x.moveTo(-29,-116);x.lineTo(29,-116);x.stroke();x.shadowBlur=0;
+ // shoulders / collar
+ x.fillStyle="#7b245f";x.fillRect(-47,-165,18,27);x.fillRect(29,-165,18,27);
+ x.fillStyle="#f4e5c8";x.beginPath();x.moveTo(-22,-170);x.lineTo(0,-153);x.lineTo(22,-170);x.lineTo(13,-179);x.lineTo(0,-166);x.lineTo(-13,-179);x.closePath();x.fill();
+ // head + broad musketeer hat
+ x.fillStyle="#c99569";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();
+ x.fillStyle="#1b1517";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
+ x.fillStyle="#241735";x.beginPath();x.ellipse(0,-211,39,8,0,0,Math.PI*2);x.fill();
+ x.beginPath();x.arc(-2,-214,23,Math.PI,Math.PI*2);x.fill();
+ x.strokeStyle="#ffcf38";x.shadowColor="#ffcf38";x.shadowBlur=8;x.lineWidth=3;x.beginPath();x.moveTo(-32,-211);x.lineTo(31,-211);x.stroke();
+ x.strokeStyle="#ff4acb";x.lineWidth=5;x.beginPath();x.moveTo(14,-229);x.quadraticCurveTo(39,-246,45,-224);x.stroke();x.shadowBlur=0;
+
+ // fencing pose: sword hand forward, rear hand high.
+ let impact=atk?(atk.special?.58:atk.type==="small"?.28:.42)*(atk.speed||1):1;
+ let p=atk?Math.min(1,atk.t/impact):0, thrust=atk?(1-Math.pow(1-p,2)):0;
+ let high=atk&&atk.height==="high";
+ let swordX=43+(atk?(atk.type==="small"?42:64)*thrust:0);
+ let swordY=high?-164:-139;
+ if(!atk)swordY=-143;
+ let rearX=-32,rearY=-190-heavy*5;
+ // guard brings blade across attack line
+ if((a.guardPose||0)>0){swordX=27;swordY=a.guard==="high"?-172:-140;}
+ x.strokeStyle="#d16d70";x.lineWidth=10;x.lineCap="round";
+ x.beginPath();x.moveTo(27,-154);x.lineTo(swordX,swordY);x.stroke();
+ x.beginPath();x.moveTo(-26,-153);x.lineTo(rearX,rearY);x.stroke();
+ // rapier
+ let ang=high?-.10:.02;
+ if((a.guardPose||0)>0)ang=a.guard==="high"?-.72:.55;
+ x.save();x.translate(swordX,swordY);x.rotate(ang);
+ x.strokeStyle="#ffcf38";x.shadowColor="#ffcf38";x.shadowBlur=8;x.lineWidth=4;x.beginPath();x.arc(2,0,11,0,Math.PI*2);x.stroke();
+ x.strokeStyle="#4a2b27";x.lineWidth=7;x.beginPath();x.moveTo(-20,0);x.lineTo(4,0);x.stroke();
+ if(atk){
+   addWeaponTrail(a,swordX+Math.cos(ang)*8,swordY+Math.sin(ang)*8,
+     swordX+Math.cos(ang)*125,swordY+Math.sin(ang)*125,"rapier",atk.type!=="small"||atk.special,false);
+ }
+ x.strokeStyle=atk&&atk.special?"#fff0a8":"#fff6ff";x.shadowColor=atk&&atk.special?"#ff285d":"#ff4fe7";x.shadowBlur=atk&&atk.special?25:16;
+ x.lineWidth=5;x.beginPath();x.moveTo(8,0);x.lineTo(125,0);x.stroke();x.shadowBlur=0;
+ x.restore();x.lineCap="butt";x.restore();
 }
 function drawKatana(a,enemy,px,ground,s){
  if(shake>0)px+=Math.sin(performance.now()*.12)*shake*.45;
@@ -328,6 +403,7 @@ function drawKatana(a,enemy,px,ground,s){
 function drawFighter(a,enemy=false){
  let px=a.x*W+(shake>0?Math.sin(performance.now()*.12+(enemy?1.7:0))*shake*.45:0), ground=H*.60, s=Math.min(W,H)/520;
  if(a.weapon==="katana"){drawKatana(a,enemy,px,ground,s);return;}
+ if(a.weapon==="rapier"){drawRapier(a,enemy,px,ground,s);return;}
  // 大攻撃（上段・中段共通）は一歩踏み込み、少し腰を落とす。
  // 小攻撃ではこの姿勢変化を行わない。
  let heavyPose=0;
