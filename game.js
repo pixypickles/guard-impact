@@ -76,8 +76,8 @@ function blastToWall(f,dir,strong=false){
  f.stun=Math.max(f.stun||0,strong?.52:.38);f.atk=null;
 }
 function contactShock(strong=false){
- hitStop=Math.max(hitStop||0,strong?.075:.055);
- shake=Math.max(shake||0,strong?13:9);
+ hitStop=Math.max(hitStop||0,strong?.065:.045);
+ shake=Math.max(shake||0,strong?11:7);
 }
 function interruptHeavy(defender,attack){
  if(attack.type==="small" && defender.atk && defender.atk.type==="heavy"){
@@ -218,7 +218,7 @@ function neonHelmet(kind){
  x.shadowBlur=0;x.restore();
 }
 function drawKatana(a,enemy,px,ground,s){
- if(shake>0)px+=(Math.random()-.5)*shake;
+ if(shake>0)px+=Math.sin(performance.now()*.12)*shake*.45;
  let atk=a.atk, heavyPose=0;
  if(atk&&atk.type!=="small"){
    let dur=(atk.special?.95:.75)*(atk.speed||1);
@@ -296,7 +296,7 @@ function drawKatana(a,enemy,px,ground,s){
  x.restore();
 }
 function drawFighter(a,enemy=false){
- let px=a.x*W+(shake>0?(Math.random()-.5)*shake:0), ground=H*.60, s=Math.min(W,H)/520;
+ let px=a.x*W+(shake>0?Math.sin(performance.now()*.12+(enemy?1.7:0))*shake*.45:0), ground=H*.60, s=Math.min(W,H)/520;
  if(a.weapon==="katana"){drawKatana(a,enemy,px,ground,s);return;}
  // 大攻撃（上段・中段共通）は一歩踏み込み、少し腰を落とす。
  // 小攻撃ではこの姿勢変化を行わない。
@@ -436,8 +436,12 @@ function drawFighter(a,enemy=false){
  x.restore();
 }
 function loop(t){
- let dt=Math.min(.033,(t-last)/1000||0);last=t;
- if(hitStop>0){hitStop=Math.max(0,hitStop-dt);dt=0}
+ let realDt=Math.min(.033,(t-last)/1000||0);last=t;
+ let dt=realDt;
+ if(hitStop>0){hitStop=Math.max(0,hitStop-realDt);dt=0}
+ // 画面揺れはゲーム時間ではなく実時間で減衰させ、必ず停止させる。
+ shake=Math.max(0,shake-realDt*90);
+ if(shake<.12)shake=0;
  update(P,dt);update(E,dt);
  // キャラ同士の当たり判定。プレイヤーは常に左、CPUは常に右。
  // 接触したら互いを押し戻し、すれ違い・位置の入れ替わりを禁止する。
