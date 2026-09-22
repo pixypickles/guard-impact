@@ -392,11 +392,23 @@ function drawKatana(a,enemy,px,ground,s){
    if(atk.height==="high"){ang=-1.18+sw*1.38;h1x=32+sw*24;h1y=-158+sw*18}
    else if(atk.type==="small"){ang=-.12;h1x=35+sw*35;h1y=-140}
    else {
-     // 刀の大・中段：刃先を左へ向けた横薙ぎ。
+     // 刀の大・中段：
+     // 左上体に構えた時は刃先が右。右向きの刃で斬り始め、
+     // 横薙ぎの途中で回り込み、振り抜いた終点では刃先が左を向く。
      let q=sw;
-     if(q<.18){let r=q/.18;ang=Math.PI-.22+r*.12;h1x=25-r*8;h1y=-136}
-     else if(q<.76){let r=(q-.18)/.58;ang=Math.PI-.10+r*.20;h1x=17+r*105;h1y=-136+r*2}
-     else{let r=(q-.76)/.24;ang=Math.PI+.10+r*.42;h1x=122-r*48;h1y=-134-r*8}
+     if(q<.24){
+       let r=q/.24;
+       ang=-.18+r*.10;
+       h1x=10-r*25; h1y=-139-r*18;
+     }else if(q<.68){
+       let r=(q-.24)/.44;
+       ang=-.08+r*.18;
+       h1x=-15+r*105; h1y=-157+r*22;
+     }else{
+       let r=(q-.68)/.32;
+       ang=.10+r*(Math.PI-.02);
+       h1x=90-r*34; h1y=-135-r*3;
+     }
    }
    h2x=h1x-18;h2y=h1y+9;
  }else if(a.guard==="high"){ang=-.55;h1y=-154;h2y=-139}
