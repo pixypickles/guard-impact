@@ -365,6 +365,16 @@ function drawKatana(a,enemy,px,ground,s){
  x.strokeStyle="#d84cff";x.shadowColor="#b536ff";x.beginPath();x.moveTo(-27,-102);x.lineTo(27,-102);x.stroke();x.shadowBlur=0;
  // head/helmet + visible eye dot
  x.fillStyle="#c79467";x.beginPath();x.arc(0,-193,19,0,Math.PI*2);x.fill();
+ // 刀武者専用の異形兜：低い鉢・額当て・三日月前立て・片吹返し
+ x.fillStyle="#171126";x.strokeStyle="#72ff4d";x.shadowColor="#39ff14";x.shadowBlur=12;x.lineWidth=4;
+ x.beginPath();x.moveTo(-31,-207);x.quadraticCurveTo(-20,-226,0,-228);x.quadraticCurveTo(20,-226,31,-207);x.lineTo(25,-198);x.lineTo(-25,-198);x.closePath();x.fill();x.stroke();
+ x.fillStyle="#55206d";x.strokeStyle="#ff4cda";x.shadowColor="#ff2acb";x.shadowBlur=11;
+ x.beginPath();x.moveTo(-36,-205);x.lineTo(36,-205);x.lineTo(27,-195);x.lineTo(-27,-195);x.closePath();x.fill();x.stroke();
+ x.strokeStyle="#a7ff4f";x.shadowColor="#62ff00";x.shadowBlur=15;x.lineWidth=5;x.lineCap="round";
+ x.beginPath();x.arc(0,-226,19,.15*Math.PI,.85*Math.PI,true);x.stroke();
+ x.strokeStyle="#ff4cda";x.beginPath();x.moveTo(-28,-203);x.quadraticCurveTo(-48,-198,-51,-181);x.stroke();
+ x.shadowBlur=0;x.lineCap="butt";
+
  x.fillStyle="#1d1713";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
  x.fillStyle="#5a146e";x.beginPath();x.arc(0,-201,23,Math.PI,Math.PI*2);x.fill();x.fillRect(-23,-202,46,9);
  x.strokeStyle="#a82f25";x.lineWidth=6;x.beginPath();x.moveTo(0,-223);x.lineTo(6,-246);x.stroke();
@@ -382,25 +392,11 @@ function drawKatana(a,enemy,px,ground,s){
    if(atk.height==="high"){ang=-1.18+sw*1.38;h1x=32+sw*24;h1y=-158+sw*18}
    else if(atk.type==="small"){ang=-.12;h1x=35+sw*35;h1y=-140}
    else {
-     // 刀の大・中段：相手側へ横薙ぎする専用モーション。
-     // 画面上で「後ろに振る」だけにならないよう、刀の基点を相手側へ大きく送り込む。
+     // 刀の大・中段：刃先を左へ向けた横薙ぎ。
      let q=sw;
-     if(q<.18){
-       // 小さく引いて溜める
-       let r=q/.18;
-       ang=.18-r*.10;
-       h1x=20-r*10; h1y=-137;
-     }else if(q<.72){
-       // 刃先を相手側へ向けたまま、両手ごと前方へ走らせる。
-       let r=(q-.18)/.54;
-       ang=.08-r*.16;
-       h1x=10+r*102; h1y=-137+r*3;
-     }else{
-       // 相手を通過してから上体の手前側へ振り抜く
-       let r=(q-.72)/.28;
-       ang=-.08-r*.78;
-       h1x=112-r*48; h1y=-134-r*7;
-     }
+     if(q<.18){let r=q/.18;ang=Math.PI-.22+r*.12;h1x=25-r*8;h1y=-136}
+     else if(q<.76){let r=(q-.18)/.58;ang=Math.PI-.10+r*.20;h1x=17+r*105;h1y=-136+r*2}
+     else{let r=(q-.76)/.24;ang=Math.PI+.10+r*.42;h1x=122-r*48;h1y=-134-r*8}
    }
    h2x=h1x-18;h2y=h1y+9;
  }else if(a.guard==="high"){ang=-.55;h1y=-154;h2y=-139}
