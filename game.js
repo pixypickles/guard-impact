@@ -203,7 +203,7 @@ function update(a,dt){
    let dur=(a.atk.special?.95:a.atk.type==="small"?.55:.75)*(a.atk.speed||1);
    if(a.atk.type!=="small"){
      // 大攻撃の前半で相手方向へ実際に一歩進む
-     let target=a.weapon==="rapier"?.105:.035, prev=a.atk.lungeDone||0;
+     let target=a.weapon==="rapier"?.105:a.weapon==="katana"?.060:.035, prev=a.atk.lungeDone||0;
      let phase=Math.min(1,a.atk.t/(dur*.42));
      let wanted=target*(1-Math.pow(1-phase,2));
      a.x+=a.face*(wanted-prev);
@@ -382,21 +382,24 @@ function drawKatana(a,enemy,px,ground,s){
    if(atk.height==="high"){ang=-1.18+sw*1.38;h1x=32+sw*24;h1y=-158+sw*18}
    else if(atk.type==="small"){ang=-.12;h1x=35+sw*35;h1y=-140}
    else {
-     // 刀の大・中段：明確な横薙ぎ。
-     // ①刀を体の後方へ引く ②ほぼ水平の刃を相手へ走らせる ③手前まで振り抜く。
+     // 刀の大・中段：相手側へ横薙ぎする専用モーション。
+     // 画面上で「後ろに振る」だけにならないよう、刀の基点を相手側へ大きく送り込む。
      let q=sw;
-     if(q<.22){
-       let r=q/.22;
-       ang=.10-r*.18;
-       h1x=22-r*13; h1y=-136-r*2;
+     if(q<.18){
+       // 小さく引いて溜める
+       let r=q/.18;
+       ang=.18-r*.10;
+       h1x=20-r*10; h1y=-137;
      }else if(q<.72){
-       let r=(q-.22)/.50;
-       ang=-.08-r*.16;          // 刃はほぼ水平を維持
-       h1x=9+r*78; h1y=-138+r*2; // 手元そのものを横へ大移動
+       // 刃先を相手側へ向けたまま、両手ごと前方へ走らせる。
+       let r=(q-.18)/.54;
+       ang=.08-r*.16;
+       h1x=10+r*102; h1y=-137+r*3;
      }else{
+       // 相手を通過してから上体の手前側へ振り抜く
        let r=(q-.72)/.28;
-       ang=-.24-r*.72;
-       h1x=87-r*45; h1y=-136-r*5;
+       ang=-.08-r*.78;
+       h1x=112-r*48; h1y=-134-r*7;
      }
    }
    h2x=h1x-18;h2y=h1y+9;
