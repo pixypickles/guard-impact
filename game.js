@@ -393,21 +393,24 @@ function drawKatana(a,enemy,px,ground,s){
    else if(atk.type==="small"){ang=-.12;h1x=35+sw*35;h1y=-140}
    else {
      // 刀の大・中段：
-     // 左上体に構えた時は刃先が右。右向きの刃で斬り始め、
-     // 横薙ぎの途中で回り込み、振り抜いた終点では刃先が左を向く。
+     // 刀身は常に胸～腹の高さを通す。画面XY上で大きく回転させると
+     // 足元へ落ちるため、剣の大中段と同じく「手元の横移動＋刃方向反転」で薙ぎを表現する。
      let q=sw;
-     if(q<.24){
-       let r=q/.24;
-       ang=-.18+r*.10;
-       h1x=10-r*25; h1y=-139-r*18;
-     }else if(q<.68){
-       let r=(q-.24)/.44;
-       ang=-.08+r*.18;
-       h1x=-15+r*105; h1y=-157+r*22;
+     if(q<.22){
+       let r=q/.22;
+       // 左上体で溜め。刃先は右。
+       ang=-.10+r*.06;
+       h1x=4-r*18; h1y=-150+r*4;
+     }else if(q<.72){
+       let r=(q-.22)/.50;
+       // 右向きの刀身を胸前の高さに保ったまま、柄を相手側へ大きく送る。
+       ang=-.04+r*.08;
+       h1x=-14+r*108; h1y=-146+r*5;
      }else{
-       let r=(q-.68)/.32;
-       ang=.10+r*(Math.PI-.02);
-       h1x=90-r*34; h1y=-135-r*3;
+       let r=(q-.72)/.28;
+       // 振り抜き。刀身を足元へ回さず、水平のまま左右だけ反転。
+       ang=.04-r*.08;
+       h1x=94-r*48; h1y=-141-r*3;
      }
    }
    h2x=h1x-18;h2y=h1y+9;
@@ -430,7 +433,13 @@ function drawKatana(a,enemy,px,ground,s){
  x.beginPath();x.moveTo(-25,-151);x.lineTo(h2x,h2y);x.stroke();
 
  // katana handle + blade
- x.save();x.translate(h1x,h1y);x.rotate(ang);
+ let katBladeDir=1;
+ if(atk&&atk.height==="mid"&&atk.type!=="small"){
+   let impact=(atk.special?.58:.42)*(atk.speed||1);
+   let qp=Math.min(1,atk.t/impact);
+   katBladeDir=qp<.72?1:-1;
+ }
+ x.save();x.translate(h1x,h1y);x.scale(katBladeDir,1);x.rotate(ang);
  x.shadowBlur=0;x.strokeStyle="#120d1e";x.lineWidth=10;x.beginPath();x.moveTo(-25,0);x.lineTo(8,0);x.stroke();
  x.strokeStyle="#ffe43b";x.shadowColor="#ffe43b";x.shadowBlur=10;x.lineWidth=9;x.beginPath();x.moveTo(8,-10);x.lineTo(8,10);x.stroke();
  if(atk&&atk.special){x.shadowBlur=16;x.shadowColor="#ff3b18";x.strokeStyle="#ff7840";x.lineWidth=9;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
@@ -438,9 +447,10 @@ function drawKatana(a,enemy,px,ground,s){
  if(atk){
   // 剣と同じfighter-local方式。刀の基点(h2x,h2y)を必ず含める。
   let st=13,en=122;
+  let td=(atk.height==="mid"&&atk.type!=="small"&&Math.min(1,atk.t/((atk.special?.58:.42)*(atk.speed||1)))>=.72)?-1:1;
   addWeaponTrail(a,
-    h2x+Math.cos(ang)*st,h2y+Math.sin(ang)*st,
-    h2x+Math.cos(ang)*en,h2y+Math.sin(ang)*en,
+    h2x+Math.cos(ang)*st*td,h2y+Math.sin(ang)*st,
+    h2x+Math.cos(ang)*en*td,h2y+Math.sin(ang)*en,
     "katana",atk.type!=="small"||atk.special,false);
  }
  x.strokeStyle=(atk&&atk.special)?"#fff2a8":"#aaff66";x.shadowColor=(atk&&atk.special)?"#ff285d":"#39ff14";x.shadowBlur=(atk&&atk.special)?26:22;x.lineWidth=6;x.beginPath();x.moveTo(13,0);x.shadowColor=atk&&atk.special?"#ff285d":"#4be8ff";x.shadowBlur=atk&&atk.special?24:15;
