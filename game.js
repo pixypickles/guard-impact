@@ -350,6 +350,19 @@ function drawKatana(a,enemy,px,ground,s){
  x.fillStyle="#35104f";x.beginPath();x.moveTo(-34,-168);x.lineTo(33,-168);x.lineTo(28,-98);x.lineTo(-28,-98);x.closePath();x.fill();
  x.strokeStyle="#73ff39";x.shadowColor="#73ff39";x.shadowBlur=8;x.lineWidth=4;for(let yy=-156;yy<-108;yy+=14){x.beginPath();x.moveTo(-28,yy);x.lineTo(27,yy);x.stroke()}
  x.shadowBlur=0;techTrim("katana");
+ // 刀武者専用装甲：盾武者とは別シルエット
+ // 腰の草摺を左右へ張り出し、中央は短くして軽装の剣豪型にする。
+ x.fillStyle="#35195c";x.strokeStyle="#b94cff";x.shadowColor="#b94cff";x.shadowBlur=9;x.lineWidth=3;
+ x.beginPath();x.moveTo(-31,-91);x.lineTo(-46,-70);x.lineTo(-39,-45);x.lineTo(-18,-65);x.lineTo(-11,-91);x.closePath();x.fill();x.stroke();
+ x.beginPath();x.moveTo(31,-91);x.lineTo(46,-70);x.lineTo(39,-45);x.lineTo(18,-65);x.lineTo(11,-91);x.closePath();x.fill();x.stroke();
+ // 片側だけ大きい肩当て。左右対称な盾武者との差を出す。
+ x.fillStyle="#43206b";x.strokeStyle="#6dff59";x.shadowColor="#39ff14";x.shadowBlur=11;
+ x.beginPath();x.moveTo(-42,-164);x.lineTo(-61,-154);x.lineTo(-55,-132);x.lineTo(-31,-139);x.closePath();x.fill();x.stroke();
+ x.fillStyle="#281943";x.beginPath();x.moveTo(30,-160);x.lineTo(44,-153);x.lineTo(39,-139);x.lineTo(27,-143);x.closePath();x.fill();x.stroke();
+ // 胴の斜め札と発光する帯。盾武者の横ラインとは異なる構成。
+ x.strokeStyle="#75ff55";x.shadowColor="#39ff14";x.shadowBlur=10;x.lineWidth=4;
+ x.beginPath();x.moveTo(-25,-139);x.lineTo(23,-108);x.moveTo(-23,-122);x.lineTo(18,-96);x.stroke();
+ x.strokeStyle="#d84cff";x.shadowColor="#b536ff";x.beginPath();x.moveTo(-27,-102);x.lineTo(27,-102);x.stroke();x.shadowBlur=0;
  // head/helmet + visible eye dot
  x.fillStyle="#c79467";x.beginPath();x.arc(0,-193,19,0,Math.PI*2);x.fill();
  x.fillStyle="#1d1713";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
@@ -369,12 +382,22 @@ function drawKatana(a,enemy,px,ground,s){
    if(atk.height==="high"){ang=-1.18+sw*1.38;h1x=32+sw*24;h1y=-158+sw*18}
    else if(atk.type==="small"){ang=-.12;h1x=35+sw*35;h1y=-140}
    else {
-     // 刀の大・中段：突きではなく、剣の大中段と同じく横方向へ大きく薙ぎ払う。
-     // 奥側から相手側へ抜け、最後は手前側まで振り切る。
+     // 刀の大・中段：明確な横薙ぎ。
+     // ①刀を体の後方へ引く ②ほぼ水平の刃を相手へ走らせる ③手前まで振り抜く。
      let q=sw;
-     ang=.18-q*2.72;
-     h1x=31+Math.sin(q*Math.PI)*31;
-     h1y=-137+Math.sin(q*Math.PI)*5;
+     if(q<.22){
+       let r=q/.22;
+       ang=.10-r*.18;
+       h1x=22-r*13; h1y=-136-r*2;
+     }else if(q<.72){
+       let r=(q-.22)/.50;
+       ang=-.08-r*.16;          // 刃はほぼ水平を維持
+       h1x=9+r*78; h1y=-138+r*2; // 手元そのものを横へ大移動
+     }else{
+       let r=(q-.72)/.28;
+       ang=-.24-r*.72;
+       h1x=87-r*45; h1y=-136-r*5;
+     }
    }
    h2x=h1x-18;h2y=h1y+9;
  }else if(a.guard==="high"){ang=-.55;h1y=-154;h2y=-139}
