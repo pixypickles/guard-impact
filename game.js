@@ -11,7 +11,7 @@ function attack(a,type,charged=false){
  if(over||a.atk||(a.stun||0)>0)return;
  let special=charged&&a.m>=100;
  if(special)a.m=0;
- a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:a.weapon==="katana"?.85:a.weapon==="rapier"?.72:1};
+ a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:(a.weapon==="katana"?.85:a.weapon==="rapier"?.72:a.weapon==="dual"?.88:1)*(special?.78:1)};
 }
 function releaseAttack(type){let d=performance.now()-(hold[type]||performance.now());hold[type]=0;attack(P,type,d>380)}
 function guardSet(a,g){a.guard=g}
@@ -97,11 +97,16 @@ function resolve(a,b){
  // 手前側の身体面を重要視。中心よりかなり前で武器接触を拾う。
  let bodyFront=b.weapon==="katana"?.072:b.weapon==="rapier"?.068:.078;
  let dist=Math.max(0,centerDist-bodyFront);
- let range=q.special?.385:q.type==="small"?.305:.345;
+ let range=q.special?.425:q.type==="small"?.305:.345;
  if(dist>range)return;
  let nowGuard=b.guard===q.height;
  let just=(b.just||0)>0;
 
+ // 二刀侍: 二本をX字に交差して受ける。小-1 / 大-2。
+ if(b.weapon==="dual" && !q.special && nowGuard && (b.guardPose||0)>0){
+  if(just){sparkGuard(b,q.height,true);contactShock(true);b.guardKick=.15;b.guardPose=.24;q.deflected=true;q.deflectT=.22;blastToWall(a,-a.face,true);b.m=Math.min(100,b.m+26);b.flash=.8;say("十字受け！");return}
+  let chip=q.type==="small"?1:2;sparkGuard(b,q.height,false);contactShock(q.type!=="small");b.guardKick=.13;b.guardPose=.22;q.deflected=true;q.deflectT=.17;blastToWall(a,-a.face,q.type!=="small");b.hp-=chip;b.flash=.35;b.m=Math.min(100,b.m+(q.type==="small"?11:18));say("二刀受け -"+chip);return
+ }
  // レイピア剣士: 選択した高さを剣で受ける。小-1 / 大-2の削り。
  if(b.weapon==="rapier" && !q.special && nowGuard && (b.guardPose||0)>0){
    if(just){
@@ -203,7 +208,7 @@ function update(a,dt){
    let dur=(a.atk.special?.95:a.atk.type==="small"?.55:.75)*(a.atk.speed||1);
    if(a.atk.type!=="small"){
      // 大攻撃の前半で相手方向へ実際に一歩進む
-     let target=a.weapon==="rapier"?.105:a.weapon==="katana"?.060:.035, prev=a.atk.lungeDone||0;
+     let target=(a.weapon==="rapier"?.105:a.weapon==="katana"?.060:a.weapon==="dual"?.072:.035)+(a.atk.special?.028:0), prev=a.atk.lungeDone||0;
      let phase=Math.min(1,a.atk.t/(dur*.42));
      let wanted=target*(1-Math.pow(1-phase,2));
      a.x+=a.face*(wanted-prev);
@@ -258,6 +263,24 @@ function drawWeaponTrails(){
   x.beginPath();x.moveTo(ox+p.x1*s*fx,oy+p.y1*s);x.lineTo(ox+p.x2*s*fx,oy+p.y2*s);x.stroke();
  }
  x.restore();
+}
+function drawDual(a,enemy,px,ground,s){
+ let atk=a.atk,gp=(a.guardPose||0)>0,gk=Math.min(1,(a.guardKick||0)/.16),impact=atk?(atk.special?.58:atk.type==="small"?.28:.42)*(atk.speed||1):1,p=atk?Math.min(1,atk.t/impact):0,heavy=atk&&atk.type!=="small",second=heavy?Math.max(0,Math.min(1,(p-.46)/.54)):0;
+ x.save();x.translate(px-a.face*gk*7*s,ground);x.scale(a.face*s,s);
+ x.fillStyle="#090b1488";x.beginPath();x.ellipse(0,10,57,12,0,0,Math.PI*2);x.fill();
+ x.strokeStyle="#20172e";x.shadowColor="#ff4fd8";x.shadowBlur=8;x.lineCap="round";x.lineWidth=14;
+ x.beginPath();x.moveTo(-12,-65);x.lineTo(-28,-35);x.lineTo(-39,-2);x.moveTo(12,-65);x.lineTo(29+(heavy?13:0),-36);x.lineTo(42+(heavy?20:0),-2);x.stroke();x.shadowBlur=0;
+ x.fillStyle="#182f3d";x.beginPath();x.moveTo(-31,-165);x.lineTo(31,-165);x.lineTo(35,-91);x.lineTo(18,-72);x.lineTo(0,-84);x.lineTo(-18,-72);x.lineTo(-35,-91);x.closePath();x.fill();
+ x.strokeStyle="#ff9d36";x.shadowColor="#ff7425";x.shadowBlur=11;x.lineWidth=4;x.beginPath();x.moveTo(-28,-143);x.lineTo(28,-143);x.moveTo(-30,-119);x.lineTo(30,-119);x.moveTo(-26,-96);x.lineTo(26,-96);x.stroke();
+ x.strokeStyle="#56f4ff";x.shadowColor="#00dfff";x.beginPath();x.moveTo(-21,-157);x.lineTo(0,-137);x.lineTo(21,-157);x.stroke();x.shadowBlur=0;
+ x.fillStyle="#c99569";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#121b29";x.strokeStyle="#ff9d36";x.lineWidth=4;x.beginPath();x.moveTo(-31,-205);x.quadraticCurveTo(-22,-226,0,-228);x.quadraticCurveTo(22,-226,31,-205);x.lineTo(25,-198);x.lineTo(-25,-198);x.closePath();x.fill();x.stroke();
+ x.strokeStyle="#56f4ff";x.shadowColor="#00eaff";x.shadowBlur=13;x.lineWidth=5;x.beginPath();x.moveTo(-8,-219);x.lineTo(-27,-239);x.moveTo(8,-219);x.lineTo(27,-239);x.stroke();x.shadowBlur=0;x.fillStyle="#171318";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
+ let fX=34,fY=-139,bX=-18,bY=-151,a1=-.12,a2=.35;
+ if(atk){if(atk.type==="small"){fX=34+72*(1-Math.pow(1-p,2));fY=atk.height==="high"?-163:-139;a1=atk.height==="high"?-.18:.01}else{let p1=Math.min(1,p/.50);fX=31+65*Math.sin(p1*Math.PI*.78);fY=atk.height==="high"?-160:-140;a1=-.28+p1*.62;bX=-18+92*second;bY=(atk.height==="high"?-170:-151)+10*second;a2=.42-second*.55}}
+ if(gp){fX=24;fY=a.guard==="high"?-170:-145;a1=-.78;bX=9;bY=a.guard==="high"?-169:-144;a2=.78}
+ x.strokeStyle="#d06d65";x.lineWidth=10;x.beginPath();x.moveTo(25,-153);x.lineTo(fX,fY);x.moveTo(-25,-153);x.lineTo(bX,bY);x.stroke();
+ function blade(hx,hy,ang,col,glow){x.save();x.translate(hx,hy);x.rotate(ang);x.strokeStyle="#1a1016";x.lineWidth=8;x.beginPath();x.moveTo(-17,0);x.lineTo(4,0);x.stroke();x.strokeStyle="#ffd34e";x.lineWidth=4;x.beginPath();x.moveTo(-1,-11);x.lineTo(-1,11);x.stroke();if(atk)addWeaponTrail(a,hx+Math.cos(ang)*7,hy+Math.sin(ang)*7,hx+Math.cos(ang)*103,hy+Math.sin(ang)*103,"dual",heavy||atk.special,false);x.strokeStyle=col;x.shadowColor=glow;x.shadowBlur=18;x.lineWidth=6;x.beginPath();x.moveTo(7,0);x.lineTo(103,0);x.stroke();x.restore()}
+ blade(fX,fY,a1,"#fff1a8","#ff9d25");blade(bX,bY,a2,"#d8fbff","#00eaff");x.restore()
 }
 function drawRapier(a,enemy,px,ground,s){
  if(shake>0)px+=Math.sin(performance.now()*.12)*shake*.45;
@@ -463,6 +486,7 @@ function drawFighter(a,enemy=false){
  let px=a.x*W+(shake>0?Math.sin(performance.now()*.12+(enemy?1.7:0))*shake*.45:0), ground=H*.60, s=Math.min(W,H)/520;
  if(a.weapon==="katana"){drawKatana(a,enemy,px,ground,s);return;}
  if(a.weapon==="rapier"){drawRapier(a,enemy,px,ground,s);return;}
+ if(a.weapon==="dual"){drawDual(a,enemy,px,ground,s);return;}
  // 大攻撃（上段・中段共通）は一歩踏み込み、少し腰を落とす。
  // 小攻撃ではこの姿勢変化を行わない。
  let heavyPose=0;
@@ -647,7 +671,7 @@ function applyCharacterChoice(w){
  // resetより先に選択結果をfighter stateへ保存する。
  P.weapon=w;
  // 相手は別系統を出す。レイピア選択時は刀、それ以外はレイピア。
- E.weapon=w==="rapier"?"katana":"rapier";
+ E.weapon=w==="dual"?"rapier":w==="rapier"?"katana":w==="katana"?"dual":"dual";
  P.guard="mid";P.aim="mid";E.guard="mid";E.aim="mid";
  P.guardPose=0;E.guardPose=0;P.atk=null;E.atk=null;
  if(charSelect)charSelect.classList.add("hide");
