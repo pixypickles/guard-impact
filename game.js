@@ -319,8 +319,10 @@ function drawDual(a,enemy,px,ground,s){
  x.strokeStyle="#d06d65";x.lineWidth=10;x.beginPath();x.moveTo(25,-153);x.lineTo(fX,fY);x.moveTo(-25,-153);x.lineTo(bX,bY);x.stroke();
  function blade(hx,hy,ang,col,glow){x.save();x.translate(hx,hy);x.rotate(ang);x.strokeStyle="#1a1016";x.lineWidth=8;x.beginPath();x.moveTo(-17,0);x.lineTo(4,0);x.stroke();x.strokeStyle="#ffd34e";x.lineWidth=4;x.beginPath();x.moveTo(-1,-11);x.lineTo(-1,11);x.stroke();if(atk){
     let d=a.face;
-    addWeaponTrail(a,hx+Math.cos(ang)*7*d,hy+Math.sin(ang)*7,
-      hx+Math.cos(ang)*103*d,hy+Math.sin(ang)*103,"dual",heavy||atk.special,false);
+    // 残像の基準を握り手より少し攻撃方向へ寄せ、敵側でも刀身に重なる位置へ
+    let trailLead=14*d;
+    addWeaponTrail(a,hx+trailLead+Math.cos(ang)*7*d,hy+Math.sin(ang)*7,
+      hx+trailLead+Math.cos(ang)*103*d,hy+Math.sin(ang)*103,"dual",heavy||atk.special,false);
    }x.strokeStyle=col;x.shadowColor=glow;x.shadowBlur=18;x.lineWidth=6;x.beginPath();x.moveTo(7,0);x.lineTo(103,0);x.stroke();x.restore()}
  blade(fX,fY,a1,"#fff1a8","#ff9d25");blade(bX,bY,a2,"#d8fbff","#00eaff");x.restore()
 }
@@ -347,8 +349,22 @@ function drawClub(a,enemy,px,ground,s){
   else{clubX=-8+62*p;clubY=-103-42*p;clubA=.92-p*2.02}
  }
  if(gp){clubX=21;clubY=a.guard==="high"?-174:-147;clubA=a.guard==="high"?-.92:-.35}
- x.strokeStyle="#b86e50";x.lineWidth=18;x.lineCap="round";x.beginPath();x.moveTo(31,-154);x.lineTo(frontX,frontY);x.moveTo(-31,-154);x.lineTo(heavy||gp?clubX:rearX,heavy||gp?clubY:rearY);x.stroke();
- if(atk&&atk.type==="small"&&!high){x.strokeStyle="#b86e50";x.lineWidth=20;x.beginPath();x.moveTo(15,-70);x.lineTo(34,-45);x.lineTo(kickX,kickY);x.stroke();x.fillStyle="#382025";x.beginPath();x.ellipse(kickX+9,kickY,18,9,0,0,Math.PI*2);x.fill()}
+ x.strokeStyle="#b86e50";x.lineWidth=18;x.lineCap="round";
+ x.beginPath();x.moveTo(31,-154);x.lineTo(frontX,frontY);x.stroke();
+ // 奥腕：肩→肘→棍棒の柄。通常時も棍棒を持っていることが分かるよう常時表示
+ let holdX=heavy||gp?clubX:-28,holdY=heavy||gp?clubY:-145;
+ let elbowX=-43,elbowY=heavy||gp?(holdY-4):-160;
+ x.beginPath();x.moveTo(-31,-154);x.lineTo(elbowX,elbowY);x.lineTo(holdX,holdY);x.stroke();
+ x.fillStyle="#b86e50";x.beginPath();x.arc(holdX,holdY,10,0,Math.PI*2);x.fill();
+ if(atk&&atk.type==="small"&&!high){
+   // キック：腰から一本の棒に見えないよう、太腿→膝→脛→足を明確に分ける
+   let kneeX=34,kneeY=-42;
+   x.strokeStyle="#47272a";x.lineCap="round";x.lineWidth=21;
+   x.beginPath();x.moveTo(17,-69);x.lineTo(kneeX,kneeY);x.stroke();
+   x.strokeStyle="#b86e50";x.lineWidth=19;
+   x.beginPath();x.moveTo(kneeX,kneeY);x.lineTo(kickX-8,kickY);x.stroke();
+   x.fillStyle="#382025";x.beginPath();x.ellipse(kickX+7,kickY,19,10,-.05,0,Math.PI*2);x.fill();
+  }
  x.fillStyle="#b86e50";x.beginPath();x.arc(frontX,frontY,11,0,Math.PI*2);x.fill();
  x.save();x.translate(clubX,clubY);x.rotate(clubA);x.strokeStyle="#301d1a";x.lineWidth=13;x.beginPath();x.moveTo(-12,0);x.lineTo(15,0);x.stroke();x.strokeStyle="#ff6a3e";x.shadowColor="#ff3b1f";x.shadowBlur=16;x.lineWidth=15;x.beginPath();x.moveTo(13,0);x.lineTo(108,0);x.stroke();x.strokeStyle="#ffd04f";x.lineWidth=4;x.beginPath();x.moveTo(30,-7);x.lineTo(30,7);x.moveTo(58,-8);x.lineTo(58,8);x.moveTo(86,-9);x.lineTo(86,9);x.stroke();x.shadowBlur=0;x.restore();
  if(heavy)addWeaponTrail(a,clubX+Math.cos(clubA)*16,clubY+Math.sin(clubA)*16,clubX+Math.cos(clubA)*108,clubY+Math.sin(clubA)*108,"club",true,false);
