@@ -208,7 +208,12 @@ function update(a,dt){
    let dur=(a.atk.special?.95:a.atk.type==="small"?.55:.75)*(a.atk.speed||1);
    if(a.atk.type!=="small"){
      // 大攻撃の前半で相手方向へ実際に一歩進む
-     let target=(a.weapon==="rapier"?.105:a.weapon==="katana"?.060:a.weapon==="dual"?.072:.035)+(a.atk.special?.028:0), prev=a.atk.lungeDone||0;
+     let target=(a.weapon==="rapier"?.105:a.weapon==="katana"?.060:a.weapon==="dual"?.072:.035)+(a.atk.special?.028:0);
+ if(a.weapon==="dual"&&a.atk.type==="heavy"){
+  let imp=(a.atk.special?.58:.42)*(a.atk.speed||1),pp=Math.min(1,a.atk.t/imp);
+  if(pp>.46)target+=.115*Math.min(1,(pp-.46)/.34);
+ }
+ let prev=a.atk.lungeDone||0;
      let phase=Math.min(1,a.atk.t/(dur*.42));
      let wanted=target*(1-Math.pow(1-phase,2));
      a.x+=a.face*(wanted-prev);
@@ -280,19 +285,15 @@ function drawDual(a,enemy,px,ground,s){
   if(atk.type==="small"){
    fX=34+72*(1-Math.pow(1-p,2));fY=atk.height==="high"?-163:-139;a1=atk.height==="high"?-.18:.01;
   }else{
-   // 1発目：手前刀の突き
-   let p1=Math.min(1,p/.48),th=1-Math.pow(1-p1,2);
-   fX=34+76*th;fY=atk.height==="high"?-161:-140;a1=atk.height==="high"?-.14:.01;
-   // 2発目：頭上から中段へ明確に斬り下ろす。
+   // 1発目：突いた直後にすぐ引き戻す
+   let p1=Math.min(1,p/.46);
+   let thrust1=p1<.52?(1-Math.pow(1-p1/.52,2)):Math.max(0,1-(p1-.52)/.48);
+   fX=34+78*thrust1;fY=atk.height==="high"?-161:-140;a1=atk.height==="high"?-.14:.01;
+   // 2発目：中段は低い位置から斬り上げる
    if(second>0){
-    let r=second;
-    // CanvasはYが下向きに増える。手元を頭上から胸腹へ下降させる。
-    bX=-10+48*r;bY=-194+55*r;
-    // blade()の刀身は+X方向なので、-PI/2付近から始めれば刃先は頭上。
-    // そこから下向きへ回し、中段で止める。
-    a2=-1.50+r*2.28;
+    let r=second;bX=4+54*r;bY=-105-43*r;a2=.92-r*2.18;
    }else{
-    bX=-18;bY=-157;a2=-.72;
+    bX=-16;bY=-112;a2=.82;
    }
   }
  }
