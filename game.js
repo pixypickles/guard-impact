@@ -283,10 +283,17 @@ function drawDual(a,enemy,px,ground,s){
    // 1発目：手前刀の突き
    let p1=Math.min(1,p/.48),th=1-Math.pow(1-p1,2);
    fX=34+76*th;fY=atk.height==="high"?-161:-140;a1=atk.height==="high"?-.14:.01;
-   // 2発目：奥刀を上から中段へ縦に斬り下ろす
+   // 2発目：頭上から中段へ明確に斬り下ろす。
    if(second>0){
-    let r=second;bX=-8+58*r;bY=-184+50*r;a2=1.34-r*1.18;
-   }else{bX=-18;bY=-151;a2=.35}
+    let r=second;
+    // CanvasはYが下向きに増える。手元を頭上から胸腹へ下降させる。
+    bX=-10+48*r;bY=-194+55*r;
+    // blade()の刀身は+X方向なので、-PI/2付近から始めれば刃先は頭上。
+    // そこから下向きへ回し、中段で止める。
+    a2=-1.50+r*2.28;
+   }else{
+    bX=-18;bY=-157;a2=-.72;
+   }
   }
  }
  if(gp){fX=24;fY=a.guard==="high"?-170:-145;a1=-.78;bX=9;bY=a.guard==="high"?-169:-144;a2=.78}
