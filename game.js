@@ -211,7 +211,8 @@ function update(a,dt){
      let target=(a.weapon==="rapier"?.105:a.weapon==="katana"?.060:a.weapon==="dual"?.072:.035)+(a.atk.special?.028:0);
  if(a.weapon==="dual"&&a.atk.type==="heavy"){
   let imp=(a.atk.special?.58:.42)*(a.atk.speed||1),pp=Math.min(1,a.atk.t/imp);
-  if(pp>.46)target+=.115*Math.min(1,(pp-.46)/.34);
+  // 上段・中段共通で2発目に大きく踏み込む
+  if(pp>.46)target+=.125*Math.min(1,(pp-.46)/.30);
  }
  let prev=a.atk.lungeDone||0;
      let phase=Math.min(1,a.atk.t/(dur*.42));
@@ -282,18 +283,25 @@ function drawDual(a,enemy,px,ground,s){
  x.strokeStyle="#56f4ff";x.shadowColor="#00eaff";x.shadowBlur=13;x.lineWidth=5;x.beginPath();x.moveTo(-8,-219);x.lineTo(-27,-239);x.moveTo(8,-219);x.lineTo(27,-239);x.stroke();x.shadowBlur=0;x.fillStyle="#171318";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
  let fX=34,fY=-139,bX=-18,bY=-151,a1=-.12,a2=.35;
  if(atk){
+  let high=atk.height==="high";
   if(atk.type==="small"){
-   fX=34+72*(1-Math.pow(1-p,2));fY=atk.height==="high"?-163:-139;a1=atk.height==="high"?-.18:.01;
-  }else{
-   // 1発目：突いた直後にすぐ引き戻す
-   let p1=Math.min(1,p/.46);
-   let thrust1=p1<.52?(1-Math.pow(1-p1/.52,2)):Math.max(0,1-(p1-.52)/.48);
-   fX=34+78*thrust1;fY=atk.height==="high"?-161:-140;a1=atk.height==="high"?-.14:.01;
-   // 2発目：中段は低い位置から斬り上げる
-   if(second>0){
-    let r=second;bX=4+54*r;bY=-105-43*r;a2=.92-r*2.18;
+   if(high){
+    let r=p;fX=22+28*r;fY=-188+48*r;a1=-1.34+r*1.92;
    }else{
-    bX=-16;bY=-112;a2=.82;
+    let th=1-Math.pow(1-p,2);fX=34+72*th;fY=-140;a1=.01;
+   }
+  }else{
+   let p1=Math.min(1,p/.46);
+   let first=p1<.52?(1-Math.pow(1-p1/.52,2)):Math.max(0,1-(p1-.52)/.48);
+   if(high){
+    let cut=p1<.55?p1/.55:Math.max(0,1-(p1-.55)/.45);
+    fX=20+32*cut;fY=-190+50*cut;a1=-1.38+cut*1.98;
+    if(second>0){let r=second;bX=-8+55*r;bY=-194+55*r;a2=-1.48+r*2.16}
+    else{bX=-18;bY=-157;a2=-.72}
+   }else{
+    fX=34+78*first;fY=-140;a1=.01;
+    if(second>0){let r=second,th2=r<.62?(1-Math.pow(1-r/.62,2)):1;bX=-10+100*th2;bY=-142;a2=.01}
+    else{bX=-18;bY=-142;a2=.01}
    }
   }
  }
