@@ -342,7 +342,11 @@ function drawClub(a,enemy,px,ground,s){
  let frontX=35,frontY=-145,rearX=-30,rearY=-146,clubX=-28,clubY=-145,clubA=-.55,kickX=48,kickY=-35;
  if(atk&&atk.type==="small"){
   if(high){let t=p<.62?(1-Math.pow(1-p/.62,2)):Math.max(0,1-(p-.62)/.38);frontX=38+72*t;frontY=-150}
-  else{let t=p<.64?(1-Math.pow(1-p/.64,2)):Math.max(0,1-(p-.64)/.36);kickX=45+82*t;kickY=-48-18*t}
+  else{
+    // 中段小：前の拳を腹の高さへ差し込むボディブロー
+    let t=p<.58?(1-Math.pow(1-p/.58,2)):Math.max(0,1-(p-.58)/.42);
+    frontX=36+62*t;frontY=-126;
+   }
  }
  if(heavy){
   if(high){clubX=-15+60*p;clubY=-187+47*p;clubA=-1.42+p*2.08}
@@ -351,20 +355,11 @@ function drawClub(a,enemy,px,ground,s){
  if(gp){clubX=21;clubY=a.guard==="high"?-174:-147;clubA=a.guard==="high"?-.92:-.35}
  x.strokeStyle="#b86e50";x.lineWidth=18;x.lineCap="round";
  x.beginPath();x.moveTo(31,-154);x.lineTo(frontX,frontY);x.stroke();
- // 奥腕：肩→肘→棍棒の柄。通常時も棍棒を持っていることが分かるよう常時表示
+ // 奥腕：肩と棍棒の握り位置を直接つなぐ
  let holdX=heavy||gp?clubX:-28,holdY=heavy||gp?clubY:-145;
- let elbowX=-43,elbowY=heavy||gp?(holdY-4):-160;
- x.beginPath();x.moveTo(-31,-154);x.lineTo(elbowX,elbowY);x.lineTo(holdX,holdY);x.stroke();
+ x.beginPath();x.moveTo(-31,-154);x.lineTo(holdX,holdY);x.stroke();
  x.fillStyle="#b86e50";x.beginPath();x.arc(holdX,holdY,10,0,Math.PI*2);x.fill();
- if(atk&&atk.type==="small"&&!high){
-   // キック：腰から一本の棒に見えないよう、太腿→膝→脛→足を明確に分ける
-   let kneeX=34,kneeY=-42;
-   x.strokeStyle="#47272a";x.lineCap="round";x.lineWidth=21;
-   x.beginPath();x.moveTo(17,-69);x.lineTo(kneeX,kneeY);x.stroke();
-   x.strokeStyle="#b86e50";x.lineWidth=19;
-   x.beginPath();x.moveTo(kneeX,kneeY);x.lineTo(kickX-8,kickY);x.stroke();
-   x.fillStyle="#382025";x.beginPath();x.ellipse(kickX+7,kickY,19,10,-.05,0,Math.PI*2);x.fill();
-  }
+ 
  x.fillStyle="#b86e50";x.beginPath();x.arc(frontX,frontY,11,0,Math.PI*2);x.fill();
  x.save();x.translate(clubX,clubY);x.rotate(clubA);x.strokeStyle="#301d1a";x.lineWidth=13;x.beginPath();x.moveTo(-12,0);x.lineTo(15,0);x.stroke();x.strokeStyle="#ff6a3e";x.shadowColor="#ff3b1f";x.shadowBlur=16;x.lineWidth=15;x.beginPath();x.moveTo(13,0);x.lineTo(108,0);x.stroke();x.strokeStyle="#ffd04f";x.lineWidth=4;x.beginPath();x.moveTo(30,-7);x.lineTo(30,7);x.moveTo(58,-8);x.lineTo(58,8);x.moveTo(86,-9);x.lineTo(86,9);x.stroke();x.shadowBlur=0;x.restore();
  if(heavy)addWeaponTrail(a,clubX+Math.cos(clubA)*16,clubY+Math.sin(clubA)*16,clubX+Math.cos(clubA)*108,clubY+Math.sin(clubA)*108,"club",true,false);
