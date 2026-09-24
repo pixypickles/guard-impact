@@ -286,22 +286,30 @@ function drawDual(a,enemy,px,ground,s){
   let high=atk.height==="high";
   if(atk.type==="small"){
    if(high){
+    // 上段小：前刀の斬り下ろし
     let r=p;fX=22+28*r;fY=-188+48*r;a1=-1.34+r*1.92;
    }else{
-    let th=1-Math.pow(1-p,2);fX=34+72*th;fY=-140;a1=.01;
+    // 中段小：前刀で低い位置から中段へ斬り上げる
+    let r=p;fX=18+38*r;fY=-111-34*r;a1=.86-r*1.82;
    }
   }else{
    let p1=Math.min(1,p/.46);
-   let first=p1<.52?(1-Math.pow(1-p1/.52,2)):Math.max(0,1-(p1-.52)/.48);
    if(high){
-    let cut=p1<.55?p1/.55:Math.max(0,1-(p1-.55)/.45);
+    // 上段大1発目：一度だけ斬り下ろし、斬り終えた位置で保持する。
+    // 上へ戻す復帰モーションは入れない。
+    let cut=Math.min(1,p1/.55);
     fX=20+32*cut;fY=-190+50*cut;a1=-1.38+cut*1.98;
+    // 上段大2発目：奥刀の斬り下ろし
     if(second>0){let r=second;bX=-8+55*r;bY=-194+55*r;a2=-1.48+r*2.16}
     else{bX=-18;bY=-157;a2=-.72}
    }else{
-    fX=34+78*first;fY=-140;a1=.01;
-    if(second>0){let r=second,th2=r<.62?(1-Math.pow(1-r/.62,2)):1;bX=-10+100*th2;bY=-142;a2=.01}
-    else{bX=-18;bY=-142;a2=.01}
+    // 中段大1発目：前刀の斬り上げ。斬り終えた位置で保持。
+    let cut=Math.min(1,p1/.55);
+    fX=18+40*cut;fY=-111-35*cut;a1=.86-cut*1.82;
+    // 中段大2発目：後ろの手の刀で、さらに前へ踏み込みながら斬り上げる
+    if(second>0){
+     let r=second;bX=-12+64*r;bY=-108-38*r;a2=.90-r*1.88;
+    }else{bX=-18;bY=-111;a2=.84}
    }
   }
  }
