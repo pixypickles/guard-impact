@@ -171,7 +171,9 @@ function resolve(a,b){
  }else{
    let interrupted=interruptHeavy(b,q);
    hitImpact(b,q.height,true);contactShock(q.type!=="small");blastToWall(b,a.face,q.type!=="small");b.guardKick=.14;
-   b.hp-=q.type==="small"?9:16;b.flash=1;
+   let hitDmg=q.type==="small"?9:16;
+    if(a.weapon==="rapier")hitDmg=q.type==="small"?8:14;
+    b.hp-=hitDmg;b.flash=1;
    say(interrupted?"一閃！ 大攻撃を吹き飛ばした！":(q.height==="high"?"上段 直撃！":"中段 直撃！"));
  }
  if(b.hp<=0){b.hp=0;over=true;say(a===P?"勝利！ TAPで再戦":"敗北… TAPで再戦")}
@@ -315,7 +317,11 @@ function drawDual(a,enemy,px,ground,s){
  }
  if(gp){fX=24;fY=a.guard==="high"?-170:-145;a1=-.78;bX=9;bY=a.guard==="high"?-169:-144;a2=.78}
  x.strokeStyle="#d06d65";x.lineWidth=10;x.beginPath();x.moveTo(25,-153);x.lineTo(fX,fY);x.moveTo(-25,-153);x.lineTo(bX,bY);x.stroke();
- function blade(hx,hy,ang,col,glow){x.save();x.translate(hx,hy);x.rotate(ang);x.strokeStyle="#1a1016";x.lineWidth=8;x.beginPath();x.moveTo(-17,0);x.lineTo(4,0);x.stroke();x.strokeStyle="#ffd34e";x.lineWidth=4;x.beginPath();x.moveTo(-1,-11);x.lineTo(-1,11);x.stroke();if(atk)addWeaponTrail(a,hx+Math.cos(ang)*7,hy+Math.sin(ang)*7,hx+Math.cos(ang)*103,hy+Math.sin(ang)*103,"dual",heavy||atk.special,false);x.strokeStyle=col;x.shadowColor=glow;x.shadowBlur=18;x.lineWidth=6;x.beginPath();x.moveTo(7,0);x.lineTo(103,0);x.stroke();x.restore()}
+ function blade(hx,hy,ang,col,glow){x.save();x.translate(hx,hy);x.rotate(ang);x.strokeStyle="#1a1016";x.lineWidth=8;x.beginPath();x.moveTo(-17,0);x.lineTo(4,0);x.stroke();x.strokeStyle="#ffd34e";x.lineWidth=4;x.beginPath();x.moveTo(-1,-11);x.lineTo(-1,11);x.stroke();if(atk){
+    let d=a.face;
+    addWeaponTrail(a,hx+Math.cos(ang)*7*d,hy+Math.sin(ang)*7,
+      hx+Math.cos(ang)*103*d,hy+Math.sin(ang)*103,"dual",heavy||atk.special,false);
+   }x.strokeStyle=col;x.shadowColor=glow;x.shadowBlur=18;x.lineWidth=6;x.beginPath();x.moveTo(7,0);x.lineTo(103,0);x.stroke();x.restore()}
  blade(fX,fY,a1,"#fff1a8","#ff9d25");blade(bX,bY,a2,"#d8fbff","#00eaff");x.restore()
 }
 function drawClub(a,enemy,px,ground,s){
