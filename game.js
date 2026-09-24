@@ -276,7 +276,19 @@ function drawDual(a,enemy,px,ground,s){
  x.fillStyle="#c99569";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#121b29";x.strokeStyle="#ff9d36";x.lineWidth=4;x.beginPath();x.moveTo(-31,-205);x.quadraticCurveTo(-22,-226,0,-228);x.quadraticCurveTo(22,-226,31,-205);x.lineTo(25,-198);x.lineTo(-25,-198);x.closePath();x.fill();x.stroke();
  x.strokeStyle="#56f4ff";x.shadowColor="#00eaff";x.shadowBlur=13;x.lineWidth=5;x.beginPath();x.moveTo(-8,-219);x.lineTo(-27,-239);x.moveTo(8,-219);x.lineTo(27,-239);x.stroke();x.shadowBlur=0;x.fillStyle="#171318";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
  let fX=34,fY=-139,bX=-18,bY=-151,a1=-.12,a2=.35;
- if(atk){if(atk.type==="small"){fX=34+72*(1-Math.pow(1-p,2));fY=atk.height==="high"?-163:-139;a1=atk.height==="high"?-.18:.01}else{let p1=Math.min(1,p/.50);fX=31+65*Math.sin(p1*Math.PI*.78);fY=atk.height==="high"?-160:-140;a1=-.28+p1*.62;bX=-18+92*second;bY=(atk.height==="high"?-170:-151)+10*second;a2=.42-second*.55}}
+ if(atk){
+  if(atk.type==="small"){
+   fX=34+72*(1-Math.pow(1-p,2));fY=atk.height==="high"?-163:-139;a1=atk.height==="high"?-.18:.01;
+  }else{
+   // 1発目：手前刀の突き
+   let p1=Math.min(1,p/.48),th=1-Math.pow(1-p1,2);
+   fX=34+76*th;fY=atk.height==="high"?-161:-140;a1=atk.height==="high"?-.14:.01;
+   // 2発目：奥刀を上から中段へ縦に斬り下ろす
+   if(second>0){
+    let r=second;bX=-8+58*r;bY=-184+50*r;a2=1.34-r*1.18;
+   }else{bX=-18;bY=-151;a2=.35}
+  }
+ }
  if(gp){fX=24;fY=a.guard==="high"?-170:-145;a1=-.78;bX=9;bY=a.guard==="high"?-169:-144;a2=.78}
  x.strokeStyle="#d06d65";x.lineWidth=10;x.beginPath();x.moveTo(25,-153);x.lineTo(fX,fY);x.moveTo(-25,-153);x.lineTo(bX,bY);x.stroke();
  function blade(hx,hy,ang,col,glow){x.save();x.translate(hx,hy);x.rotate(ang);x.strokeStyle="#1a1016";x.lineWidth=8;x.beginPath();x.moveTo(-17,0);x.lineTo(4,0);x.stroke();x.strokeStyle="#ffd34e";x.lineWidth=4;x.beginPath();x.moveTo(-1,-11);x.lineTo(-1,11);x.stroke();if(atk)addWeaponTrail(a,hx+Math.cos(ang)*7,hy+Math.sin(ang)*7,hx+Math.cos(ang)*103,hy+Math.sin(ang)*103,"dual",heavy||atk.special,false);x.strokeStyle=col;x.shadowColor=glow;x.shadowBlur=18;x.lineWidth=6;x.beginPath();x.moveTo(7,0);x.lineTo(103,0);x.stroke();x.restore()}
