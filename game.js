@@ -11,7 +11,7 @@ function attack(a,type,charged=false){
  if(over||a.atk||(a.stun||0)>0)return;
  let special=charged&&a.m>=100;
  if(special)a.m=0;
- a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:(a.weapon==="katana"?.85:a.weapon==="rapier"?.72:a.weapon==="dual"?.88:1)*(special?.78:1)};
+ a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:(a.weapon==="katana"?.85:a.weapon==="rapier"?.72:a.weapon==="dual"?.88:a.weapon==="club"?.96:1)*(special?.78:1)};
 }
 function releaseAttack(type){let d=performance.now()-(hold[type]||performance.now());hold[type]=0;attack(P,type,d>380)}
 function guardSet(a,g){a.guard=g}
@@ -280,7 +280,7 @@ function drawDual(a,enemy,px,ground,s){
  x.strokeStyle="#ff9d36";x.shadowColor="#ff7425";x.shadowBlur=11;x.lineWidth=4;x.beginPath();x.moveTo(-28,-143);x.lineTo(28,-143);x.moveTo(-30,-119);x.lineTo(30,-119);x.moveTo(-26,-96);x.lineTo(26,-96);x.stroke();
  x.strokeStyle="#56f4ff";x.shadowColor="#00dfff";x.beginPath();x.moveTo(-21,-157);x.lineTo(0,-137);x.lineTo(21,-157);x.stroke();x.shadowBlur=0;
  x.fillStyle="#c99569";x.beginPath();x.arc(0,-194,19,0,Math.PI*2);x.fill();x.fillStyle="#121b29";x.strokeStyle="#ff9d36";x.lineWidth=4;x.beginPath();x.moveTo(-31,-205);x.quadraticCurveTo(-22,-226,0,-228);x.quadraticCurveTo(22,-226,31,-205);x.lineTo(25,-198);x.lineTo(-25,-198);x.closePath();x.fill();x.stroke();
- x.strokeStyle="#56f4ff";x.shadowColor="#00eaff";x.shadowBlur=13;x.lineWidth=5;x.beginPath();x.moveTo(-8,-219);x.lineTo(-27,-239);x.moveTo(8,-219);x.lineTo(27,-239);x.stroke();x.shadowBlur=0;x.fillStyle="#171318";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
+ x.strokeStyle="#56f4ff";x.shadowColor="#00eaff";x.shadowBlur=13;x.lineWidth=5;x.lineCap="round";x.beginPath();x.arc(7,-221,18,.55*Math.PI,1.43*Math.PI);x.stroke();x.lineCap="butt";x.shadowBlur=0;x.fillStyle="#171318";x.beginPath();x.arc(11,-188,3.8,0,Math.PI*2);x.fill();
  let fX=34,fY=-139,bX=-18,bY=-151,a1=-.12,a2=.35;
  if(atk){
   let high=atk.height==="high";
@@ -317,6 +317,36 @@ function drawDual(a,enemy,px,ground,s){
  x.strokeStyle="#d06d65";x.lineWidth=10;x.beginPath();x.moveTo(25,-153);x.lineTo(fX,fY);x.moveTo(-25,-153);x.lineTo(bX,bY);x.stroke();
  function blade(hx,hy,ang,col,glow){x.save();x.translate(hx,hy);x.rotate(ang);x.strokeStyle="#1a1016";x.lineWidth=8;x.beginPath();x.moveTo(-17,0);x.lineTo(4,0);x.stroke();x.strokeStyle="#ffd34e";x.lineWidth=4;x.beginPath();x.moveTo(-1,-11);x.lineTo(-1,11);x.stroke();if(atk)addWeaponTrail(a,hx+Math.cos(ang)*7,hy+Math.sin(ang)*7,hx+Math.cos(ang)*103,hy+Math.sin(ang)*103,"dual",heavy||atk.special,false);x.strokeStyle=col;x.shadowColor=glow;x.shadowBlur=18;x.lineWidth=6;x.beginPath();x.moveTo(7,0);x.lineTo(103,0);x.stroke();x.restore()}
  blade(fX,fY,a1,"#fff1a8","#ff9d25");blade(bX,bY,a2,"#d8fbff","#00eaff");x.restore()
+}
+function drawClub(a,enemy,px,ground,s){
+ let atk=a.atk,gp=(a.guardPose||0)>0,gk=Math.min(1,(a.guardKick||0)/.16);
+ let impact=atk?(atk.special?.58:atk.type==="small"?.28:.42)*(atk.speed||1):1,p=atk?Math.min(1,atk.t/impact):0;
+ let high=atk&&atk.height==="high",heavy=atk&&atk.type!=="small";
+ x.save();x.translate(px-a.face*gk*7*s,ground);x.scale(a.face*s,s);
+ x.fillStyle="#080a1088";x.beginPath();x.ellipse(0,10,65,13,0,0,Math.PI*2);x.fill();
+ x.strokeStyle="#47272a";x.lineCap="round";x.lineWidth=20;x.beginPath();x.moveTo(-15,-70);x.lineTo(-31,-35);x.lineTo(-42,-2);x.moveTo(15,-70);x.lineTo(34,-35);x.lineTo(48,-2);x.stroke();
+ x.lineWidth=13;x.beginPath();x.moveTo(-42,-2);x.lineTo(-57,3);x.moveTo(48,-2);x.lineTo(64,3);x.stroke();
+ x.fillStyle="#4a1831";x.strokeStyle="#ff5a43";x.lineWidth=4;x.beginPath();x.moveTo(-39,-91);x.lineTo(39,-91);x.lineTo(31,-62);x.lineTo(0,-72);x.lineTo(-31,-62);x.closePath();x.fill();x.stroke();
+ x.fillStyle="#b86e50";x.strokeStyle="#ff7959";x.lineWidth=3;x.beginPath();x.moveTo(-42,-161);x.quadraticCurveTo(-28,-177,0,-168);x.quadraticCurveTo(28,-177,42,-161);x.lineTo(35,-91);x.lineTo(-35,-91);x.closePath();x.fill();x.stroke();
+ x.strokeStyle="#733c38";x.beginPath();x.moveTo(0,-157);x.lineTo(0,-101);x.moveTo(-30,-145);x.quadraticCurveTo(-15,-134,0,-140);x.quadraticCurveTo(15,-134,30,-145);x.moveTo(-18,-125);x.lineTo(18,-125);x.moveTo(-17,-109);x.lineTo(17,-109);x.stroke();
+ x.fillStyle="#b86e50";x.beginPath();x.arc(0,-195,22,0,Math.PI*2);x.fill();x.fillStyle="#25161a";x.beginPath();x.arc(-2,-204,21,3.3,6.15);x.lineTo(19,-197);x.closePath();x.fill();x.fillStyle="#161116";x.beginPath();x.arc(13,-190,4,0,Math.PI*2);x.fill();
+
+ let frontX=35,frontY=-145,rearX=-30,rearY=-146,clubX=-28,clubY=-145,clubA=-.55,kickX=48,kickY=-35;
+ if(atk&&atk.type==="small"){
+  if(high){let t=p<.62?(1-Math.pow(1-p/.62,2)):Math.max(0,1-(p-.62)/.38);frontX=38+72*t;frontY=-150}
+  else{let t=p<.64?(1-Math.pow(1-p/.64,2)):Math.max(0,1-(p-.64)/.36);kickX=45+82*t;kickY=-48-18*t}
+ }
+ if(heavy){
+  if(high){clubX=-15+60*p;clubY=-187+47*p;clubA=-1.42+p*2.08}
+  else{clubX=-8+62*p;clubY=-103-42*p;clubA=.92-p*2.02}
+ }
+ if(gp){clubX=21;clubY=a.guard==="high"?-174:-147;clubA=a.guard==="high"?-.92:-.35}
+ x.strokeStyle="#b86e50";x.lineWidth=18;x.lineCap="round";x.beginPath();x.moveTo(31,-154);x.lineTo(frontX,frontY);x.moveTo(-31,-154);x.lineTo(heavy||gp?clubX:rearX,heavy||gp?clubY:rearY);x.stroke();
+ if(atk&&atk.type==="small"&&!high){x.strokeStyle="#b86e50";x.lineWidth=20;x.beginPath();x.moveTo(15,-70);x.lineTo(34,-45);x.lineTo(kickX,kickY);x.stroke();x.fillStyle="#382025";x.beginPath();x.ellipse(kickX+9,kickY,18,9,0,0,Math.PI*2);x.fill()}
+ x.fillStyle="#b86e50";x.beginPath();x.arc(frontX,frontY,11,0,Math.PI*2);x.fill();
+ x.save();x.translate(clubX,clubY);x.rotate(clubA);x.strokeStyle="#301d1a";x.lineWidth=13;x.beginPath();x.moveTo(-12,0);x.lineTo(15,0);x.stroke();x.strokeStyle="#ff6a3e";x.shadowColor="#ff3b1f";x.shadowBlur=16;x.lineWidth=15;x.beginPath();x.moveTo(13,0);x.lineTo(108,0);x.stroke();x.strokeStyle="#ffd04f";x.lineWidth=4;x.beginPath();x.moveTo(30,-7);x.lineTo(30,7);x.moveTo(58,-8);x.lineTo(58,8);x.moveTo(86,-9);x.lineTo(86,9);x.stroke();x.shadowBlur=0;x.restore();
+ if(heavy)addWeaponTrail(a,clubX+Math.cos(clubA)*16,clubY+Math.sin(clubA)*16,clubX+Math.cos(clubA)*108,clubY+Math.sin(clubA)*108,"club",true,false);
+ x.lineCap="butt";x.restore();
 }
 function drawRapier(a,enemy,px,ground,s){
  if(shake>0)px+=Math.sin(performance.now()*.12)*shake*.45;
@@ -522,6 +552,7 @@ function drawFighter(a,enemy=false){
  let px=a.x*W+(shake>0?Math.sin(performance.now()*.12+(enemy?1.7:0))*shake*.45:0), ground=H*.60, s=Math.min(W,H)/520;
  if(a.weapon==="katana"){drawKatana(a,enemy,px,ground,s);return;}
  if(a.weapon==="rapier"){drawRapier(a,enemy,px,ground,s);return;}
+ if(a.weapon==="club"){drawClub(a,enemy,px,ground,s);return;}
  if(a.weapon==="dual"){drawDual(a,enemy,px,ground,s);return;}
  // 大攻撃（上段・中段共通）は一歩踏み込み、少し腰を落とす。
  // 小攻撃ではこの姿勢変化を行わない。
@@ -707,7 +738,7 @@ function applyCharacterChoice(w){
  // resetより先に選択結果をfighter stateへ保存する。
  P.weapon=w;
  // 相手は別系統を出す。レイピア選択時は刀、それ以外はレイピア。
- E.weapon=w==="dual"?"rapier":w==="rapier"?"katana":w==="katana"?"dual":"dual";
+ E.weapon=w==="club"?"dual":w==="dual"?"club":w==="rapier"?"katana":w==="katana"?"dual":"club";
  P.guard="mid";P.aim="mid";E.guard="mid";E.aim="mid";
  P.guardPose=0;E.guardPose=0;P.atk=null;E.atk=null;
  if(charSelect)charSelect.classList.add("hide");
