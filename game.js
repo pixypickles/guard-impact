@@ -11,7 +11,7 @@ function attack(a,type,charged=false){
  if(over||a.atk||(a.stun||0)>0)return;
  let special=charged&&a.m>=100;
  if(special)a.m=0;
- a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:(a.weapon==="katana"?.85:a.weapon==="rapier"?.72:a.weapon==="dual"?.88:a.weapon==="club"?.96:1)*(special?.78:1)};
+ a.atk={t:0,type,special,hit:false,height:a.aim||a.guard||"mid",speed:(a.weapon==="katana"?.85:a.weapon==="rapier"?.72:a.weapon==="dual"?.88:a.weapon==="club"?.96:a.weapon==="spear"?1.10:1)*(special?.78:1)};
 }
 function releaseAttack(type){let d=performance.now()-(hold[type]||performance.now());hold[type]=0;attack(P,type,d>380)}
 function guardSet(a,g){a.guard=g}
@@ -210,7 +210,7 @@ function update(a,dt){
    let dur=(a.atk.special?.95:a.atk.type==="small"?.55:.75)*(a.atk.speed||1);
    if(a.atk.type!=="small"){
      // 大攻撃の前半で相手方向へ実際に一歩進む
-     let target=(a.weapon==="rapier"?.105:a.weapon==="katana"?.060:a.weapon==="dual"?.072:.035)+(a.atk.special?.028:0);
+     let target=(a.weapon==="rapier"?.105:a.weapon==="spear"?.098:a.weapon==="katana"?.060:a.weapon==="dual"?.072:.035)+(a.atk.special?.028:0);
  if(a.weapon==="dual"&&a.atk.type==="heavy"){
   let imp=(a.atk.special?.58:.42)*(a.atk.speed||1),pp=Math.min(1,a.atk.t/imp);
   // 上段・中段共通で2発目に大きく踏み込む
@@ -363,6 +363,79 @@ function drawClub(a,enemy,px,ground,s){
  x.fillStyle="#b86e50";x.beginPath();x.arc(frontX,frontY,11,0,Math.PI*2);x.fill();
  x.save();x.translate(clubX,clubY);x.rotate(clubA);x.strokeStyle="#301d1a";x.lineWidth=13;x.beginPath();x.moveTo(-12,0);x.lineTo(15,0);x.stroke();x.strokeStyle="#ff6a3e";x.shadowColor="#ff3b1f";x.shadowBlur=16;x.lineWidth=15;x.beginPath();x.moveTo(13,0);x.lineTo(108,0);x.stroke();x.strokeStyle="#ffd04f";x.lineWidth=4;x.beginPath();x.moveTo(30,-7);x.lineTo(30,7);x.moveTo(58,-8);x.lineTo(58,8);x.moveTo(86,-9);x.lineTo(86,9);x.stroke();x.shadowBlur=0;x.restore();
  if(heavy)addWeaponTrail(a,clubX+Math.cos(clubA)*16,clubY+Math.sin(clubA)*16,clubX+Math.cos(clubA)*108,clubY+Math.sin(clubA)*108,"club",true,false);
+ x.lineCap="butt";x.restore();
+}
+function drawSpear(a,enemy,px,ground,s){
+ let atk=a.atk,gp=(a.guardPose||0)>0,gk=Math.min(1,(a.guardKick||0)/.16);
+ let impact=atk?(atk.special?.58:atk.type==="small"?.28:.42)*(atk.speed||1):1,p=atk?Math.min(1,atk.t/impact):0;
+ let high=atk&&atk.height==="high",heavy=atk&&atk.type!=="small";
+ x.save();x.translate(px-a.face*gk*7*s,ground);x.scale(a.face*s,s);
+
+ x.fillStyle="#080a1088";x.beginPath();x.ellipse(0,10,58,12,0,0,Math.PI*2);x.fill();
+
+ // 脚：前後に構えた槍兵らしい立ち方
+ x.strokeStyle="#171d36";x.lineCap="round";x.lineWidth=16;
+ x.beginPath();x.moveTo(-13,-72);x.lineTo(-30,-38);x.lineTo(-43,-2);x.moveTo(13,-72);x.lineTo(30,-40);x.lineTo(43,-2);x.stroke();
+ x.lineWidth=10;x.beginPath();x.moveTo(-43,-2);x.lineTo(-56,2);x.moveTo(43,-2);x.lineTo(57,2);x.stroke();
+
+ // 鎧
+ x.fillStyle="#26375b";x.strokeStyle="#ffe24f";x.lineWidth=4;
+ x.beginPath();x.moveTo(-35,-163);x.lineTo(34,-163);x.lineTo(38,-87);x.lineTo(-37,-87);x.closePath();x.fill();x.stroke();
+ x.strokeStyle="#65f5ff";x.shadowColor="#00eaff";x.shadowBlur=10;
+ x.beginPath();x.moveTo(-28,-145);x.lineTo(28,-145);x.moveTo(-29,-121);x.lineTo(29,-121);x.stroke();x.shadowBlur=0;
+ x.fillStyle="#542857";x.beginPath();x.moveTo(-36,-87);x.lineTo(36,-87);x.lineTo(28,-66);x.lineTo(-28,-66);x.closePath();x.fill();
+
+ // 頭・兜・目
+ x.fillStyle="#d69562";x.beginPath();x.arc(0,-194,22,0,Math.PI*2);x.fill();
+ x.fillStyle="#18213c";x.strokeStyle="#ffe24f";x.lineWidth=4;
+ x.beginPath();x.arc(0,-202,24,Math.PI,0);x.lineTo(24,-197);x.lineTo(-24,-197);x.closePath();x.fill();x.stroke();
+ x.strokeStyle="#ff6d37";x.shadowColor="#ff4c20";x.shadowBlur=9;x.lineWidth=5;
+ x.beginPath();x.moveTo(-7,-224);x.quadraticCurveTo(4,-242,15,-226);x.stroke();x.shadowBlur=0;
+ x.fillStyle="#151019";x.beginPath();x.arc(12,-190,4,0,Math.PI*2);x.fill();
+
+ // 槍の基本位置：両手で水平に構える
+ let rearX=-18,rearY=-144,frontX=22,frontY=-142;
+ let shaftX=-28,shaftY=-143,ang=0;
+ if(atk){
+  if(heavy){
+   // 大：身体ごと踏み込む長い突き
+   let t=1-Math.pow(1-p,2);
+   rearX=-9+30*t;rearY=high?-158:-143;
+   frontX=28+48*t;frontY=high?-158:-143;
+   shaftX=-20+45*t;shaftY=high?-158:-143;ang=high?-.08:.01;
+  }else{
+   // 小：足はほぼそのまま。手だけで素早く槍を送り出す
+   let t=p<.62?(1-Math.pow(1-p/.62,2)):Math.max(0,1-(p-.62)/.38);
+   rearX=-18+18*t;rearY=high?-157:-143;
+   frontX=22+55*t;frontY=high?-157:-143;
+   shaftX=-28+58*t;shaftY=high?-157:-143;ang=high?-.07:.01;
+  }
+ }
+ if(gp){
+  // ガード：槍を身体の前で縦に立て、両手で受ける
+  rearX=-3;rearY=-126;frontX=2;frontY=-166;
+  shaftX=7;shaftY=-191;ang=Math.PI/2;
+ }
+
+ // 奥腕→後ろ手、前腕→前手
+ x.strokeStyle="#d69562";x.lineWidth=15;x.lineCap="round";
+ x.beginPath();x.moveTo(-27,-153);x.lineTo(rearX,rearY);x.moveTo(28,-153);x.lineTo(frontX,frontY);x.stroke();
+ x.fillStyle="#d69562";x.beginPath();x.arc(rearX,rearY,8,0,Math.PI*2);x.arc(frontX,frontY,8,0,Math.PI*2);x.fill();
+
+ // 槍：レイピアよりかなり長く、太い両手武器
+ x.save();x.translate(shaftX,shaftY);x.rotate(ang);
+ x.strokeStyle="#41261d";x.lineWidth=9;x.lineCap="round";x.beginPath();x.moveTo(-30,0);x.lineTo(122,0);x.stroke();
+ x.strokeStyle="#ffe75b";x.shadowColor="#ffbe31";x.shadowBlur=13;x.lineWidth=5;
+ x.beginPath();x.moveTo(112,0);x.lineTo(158,0);x.stroke();
+ x.fillStyle="#6df4ff";x.shadowColor="#00eaff";x.shadowBlur=15;
+ x.beginPath();x.moveTo(158,0);x.lineTo(184,-10);x.lineTo(176,0);x.lineTo(184,10);x.closePath();x.fill();x.shadowBlur=0;
+ x.strokeStyle="#ff7d35";x.lineWidth=5;x.beginPath();x.moveTo(92,-10);x.lineTo(92,10);x.stroke();
+ x.restore();
+
+ if(atk){
+  let c=Math.cos(ang),sn=Math.sin(ang);
+  addWeaponTrail(a,shaftX+c*115,shaftY+sn*115,shaftX+c*184,shaftY+sn*184,"spear",heavy||atk.special,false);
+ }
  x.lineCap="butt";x.restore();
 }
 function drawRapier(a,enemy,px,ground,s){
@@ -569,6 +642,7 @@ function drawFighter(a,enemy=false){
  let px=a.x*W+(shake>0?Math.sin(performance.now()*.12+(enemy?1.7:0))*shake*.45:0), ground=H*.60, s=Math.min(W,H)/520;
  if(a.weapon==="katana"){drawKatana(a,enemy,px,ground,s);return;}
  if(a.weapon==="rapier"){drawRapier(a,enemy,px,ground,s);return;}
+ if(a.weapon==="spear"){drawSpear(a,enemy,px,ground,s);return;}
  if(a.weapon==="club"){drawClub(a,enemy,px,ground,s);return;}
  if(a.weapon==="dual"){drawDual(a,enemy,px,ground,s);return;}
  // 大攻撃（上段・中段共通）は一歩踏み込み、少し腰を落とす。
@@ -755,7 +829,7 @@ function applyCharacterChoice(w){
  // resetより先に選択結果をfighter stateへ保存する。
  P.weapon=w;
  // 相手は別系統を出す。レイピア選択時は刀、それ以外はレイピア。
- E.weapon=w==="club"?"dual":w==="dual"?"club":w==="rapier"?"katana":w==="katana"?"dual":"club";
+ E.weapon=w==="spear"?"dual":w==="club"?"spear":w==="dual"?"club":w==="rapier"?"katana":w==="katana"?"spear":"club";
  P.guard="mid";P.aim="mid";E.guard="mid";E.aim="mid";
  P.guardPose=0;E.guardPose=0;P.atk=null;E.atk=null;
  if(charSelect)charSelect.classList.add("hide");
